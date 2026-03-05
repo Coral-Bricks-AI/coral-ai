@@ -1,17 +1,49 @@
 # py-gpu-inference
 
-Production-grade gRPC GPU embedding inference server. Built for high-throughput, low-latency embedding generation with transformer models.
+A production gRPC embedding server that squeezes maximum throughput from a single GPU — without wasting compute on padding, without crashing under load, and without the complexity of Triton/TensorRT.
 
-## Features
+Most embedding servers batch by item count: "take the next 32 requests." If one request is 10 tokens and another is 500, the short one gets padded to 500 — wasting 98% of its compute. They also lack admission control, so a traffic spike queues unboundedly until OOM or timeout.
 
-- **Token-bucket batching**: Groups requests by padded sequence length (16, 32, 64, 128, 256, 512) to minimize padding waste
-- **Backpressure / admission control**: Throughput-based (queue drain time) and latency-based (P95 tracking) rejection strategies
-- **Single GPU worker thread**: Dedicated thread with `torch.compile` + CUDA graph capture for maximum GPU utilization
-- **Fused mean pooling**: Single `torch.isin()` mask operation instead of per-token loops, excluding CLS/SEP/control tokens
-- **Non-blocking CPU→GPU transfers**: `non_blocking=True` with bf16 precision, TF32 matmul, cuDNN auto-tuner
-- **Bulk result routing**: `OutputNotifier` routes batch results back to individual requests without per-item overhead
-- **Pluggable metrics**: Abstract `MetricsClient` with CloudWatch implementation and no-op fallback
-- **Health endpoint**: HTTP `/health` + gRPC `HealthCheck` with queue depth, service rate, and P95 latency
+`py-gpu-inference` fixes both problems with a token-bucket batching architecture and dual-strategy backpressure, while staying in pure Python/PyTorch.
+
+## What's Different
+
+### Token-Bucket Batching
+
+Requests are routed into length-based buckets (16, 32, 64, 128, 256, 512 tokens) before batching. A 10-token query lands in the 16-token bucket and gets padded to 16 — not to the longest sequence in the batch. This eliminates 3-10x wasted FLOPs compared to naive batching.
+
+The batcher drains buckets using a priority system: stale buckets first (deadline-based), then full buckets, then the largest bucket when the GPU is idle. Batch sizes are fixed (8, 16, 32, ..., 512) so `torch.compile` CUDA graphs are reused instead of recompiled.
+
+### Dual Backpressure
+
+Two admission control strategies, selectable at deploy time:
+
+- **Throughput-based** (default): Estimates queue drain time from an EMA of the GPU's actual processing rate. Rejects requests when `queued_tokens / service_rate > threshold`. Predictive — it catches overload *before* latency spikes.
+- **Latency-based**: Tracks P95 server-side latency in a sliding window. Soft threshold triggers 25% probabilistic shedding; hard threshold rejects 100%. Reactive — useful when latency SLAs are the primary constraint.
+
+Both expose real-time metrics via HTTP `/health` and gRPC `HealthCheck` for load balancer integration.
+
+### CUDA Graph-Aware Threading
+
+`torch.compile(mode='reduce-overhead')` captures CUDA graphs into thread-local storage. Most implementations warm up in the main thread and run inference in a worker thread — silently missing the graph cache and falling back to eager execution.
+
+This server runs warmup *in the GPU worker thread itself*, so captured graphs are available where inference actually happens. A `threading.Event` gate blocks request acceptance until warmup completes.
+
+### Fused Mean Pooling
+
+For models trained with structured control tokens (`[product]`, `[title]`, `[query]`, etc.), these tokens must be excluded from mean pooling to avoid diluting embeddings. The naive approach iterates over each exclude token and zeros its attention mask — ~20 sequential tensor operations.
+
+This server pre-builds a single GPU tensor of all exclude IDs at startup and uses one `torch.isin()` call to produce the exclusion mask. One fused operation instead of 20.
+
+### Zero-Copy Tensor Pipeline
+
+- **gRPC transport**: Raw `bytes` fields instead of per-row protobuf encoding. `np.frombuffer` → `torch.from_numpy` with no intermediate copies.
+- **Batching**: Tensors are `torch.stack`'d at the request boundary and `torch.cat`'d at the batch boundary. The GPU worker receives ready-to-go `[batch_size, seq_len]` tensors — no per-item operations.
+- **Result routing**: One `BatchResult` per forward pass is routed back to individual request futures by `OutputNotifier`, avoiding per-item overhead.
+
+### GPU Queue Depth Cap
+
+The batcher self-throttles when the GPU input queue has 2+ pending batches, preventing memory pressure from over-queuing. Combined with `non_blocking=True` CPU→GPU transfers and `torch.inference_mode()` (faster than `no_grad` — also disables view tracking), this keeps GPU utilization high without resource contention.
 
 ## Architecture
 
@@ -21,21 +53,23 @@ Client Request (gRPC Infer)
     ▼
 InferenceServicer
     │  admission control (BackpressureManager)
-    │  tensor conversion (bytes → torch)
+    │  bytes → numpy → torch (zero-copy)
     ▼
 TokenBucketManager
-    │  routes to bucket by padded length
+    │  routes to bucket by padded sequence length
     ▼
 Batcher (async task)
-    │  collects chunks, torch.cat, selects batch size
+    │  priority drain: stale → full → largest-when-idle
+    │  torch.cat pre-stacked chunks
+    │  fixed batch sizes for CUDA graph reuse
     ▼
 GPUWorker (dedicated thread)
     │  .to(device, non_blocking=True)
-    │  model forward pass
-    │  fused mean pooling
+    │  torch.compile + CUDA graph forward pass
+    │  fused mean pooling (single torch.isin mask)
     ▼
 OutputNotifier (async task)
-    │  routes BatchResult → InferRequest futures
+    │  batch-level result → per-request future routing
     ▼
 Client Response
 ```
@@ -57,46 +91,82 @@ pip install -e ".[flash-attn]"
 ### Run
 
 ```bash
-# Use a HuggingFace model (default: answerdotai/ModernBERT-base)
+# Default: downloads answerdotai/ModernBERT-base from HuggingFace
 python -m coral_gpu_inference.grpc_server
 
-# Use a local checkpoint
+# Local checkpoint
 MODEL_PATH=/path/to/checkpoint python -m coral_gpu_inference.grpc_server
 
-# Use an S3 checkpoint (requires boto3)
-MODEL_PATH=s3://bucket/model/checkpoint/ python -m coral_gpu_inference.grpc_server
+# S3 checkpoint (requires boto3)
+MODEL_PATH=s3://bucket/model/ python -m coral_gpu_inference.grpc_server
+
+# Any HuggingFace model
+MODEL_PATH=BAAI/bge-base-en-v1.5 python -m coral_gpu_inference.grpc_server
 ```
 
-### Configuration
-
-All settings are configurable via environment variables:
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `MODEL_PATH` | `answerdotai/ModernBERT-base` | Model path: local dir, HF repo ID, or S3 URI |
-| `MODEL_CACHE_DIR` | `/tmp/model_cache` | Cache directory for downloaded models |
-| `GRPC_HOST` | `0.0.0.0` | gRPC listen address |
-| `GRPC_PORT` | `50051` | gRPC listen port |
-| `HTTP_HEALTH_PORT` | `8001` | HTTP health endpoint port |
-| `MAX_BATCH_SIZE` | `512` | Maximum items per batch |
-| `MAX_TOKENS_PER_BATCH` | `32768` | Maximum padded tokens per batch |
-| `DEADLINE_WAIT_MS` | `50` | Max wait before draining a stale bucket |
-| `GPU_QUEUE_MAXSIZE` | `4` | GPU input queue depth cap |
-| `METRICS_ENABLED` | `true` | Enable CloudWatch metrics |
-| `METRICS_NAMESPACE` | `GPUInference` | CloudWatch namespace |
-| `BACKPRESSURE_THROUGHPUT_ENABLED` | `true` | Enable throughput-based admission control |
-| `BACKPRESSURE_LATENCY_ENABLED` | `false` | Enable latency-based admission control |
-
-### Test Client
+### Test
 
 ```bash
+# With server running:
 python -m coral_gpu_inference.test_client
 ```
 
-## Control Tokens
+## Configuration
 
-This server supports models trained with structured control tokens (e.g., `[product]`, `[title]`, `[query]`). These tokens are automatically excluded from mean pooling to avoid diluting embeddings. If your model doesn't use control tokens, they'll be silently ignored.
+All settings via environment variables:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `MODEL_PATH` | `answerdotai/ModernBERT-base` | Local path, HuggingFace repo ID, or `s3://` URI |
+| `MODEL_CACHE_DIR` | `/tmp/model_cache` | Cache directory for downloaded models |
+| `DEVICE` | auto (`cuda` if available) | `cuda` or `cpu` |
+| `GRPC_PORT` | `50051` | gRPC listen port |
+| `HTTP_HEALTH_PORT` | `8001` | HTTP health endpoint port |
+| `MAX_BATCH_SIZE` | `512` | Maximum items per GPU batch |
+| `MAX_TOKENS_PER_BATCH` | `32768` | Maximum padded tokens per batch |
+| `DEADLINE_WAIT_MS` | `50` | Max time before draining a stale bucket |
+| `GPU_QUEUE_MAXSIZE` | `4` | GPU input queue depth cap |
+| `BACKPRESSURE_THROUGHPUT_ENABLED` | `true` | Enable throughput-based admission control |
+| `BACKPRESSURE_LATENCY_ENABLED` | `false` | Enable latency-based admission control |
+| `METRICS_ENABLED` | `true` | Enable CloudWatch metrics |
+| `METRICS_NAMESPACE` | `GPUInference` | CloudWatch namespace |
+
+## Health & Monitoring
+
+**HTTP** (for ALB / Kubernetes probes):
+```bash
+curl http://localhost:8001/health
+```
+
+```json
+{
+  "status": "healthy",
+  "accepting_requests": true,
+  "queued_tokens": 0,
+  "service_rate_tokens_per_sec": 45200.0,
+  "estimated_drain_time_ms": 0.0,
+  "p95_server_side_latency_ms": null,
+  "gpu_queue_depth": 0,
+  "embedding_dimension": 768,
+  "uptime_seconds": 3600
+}
+```
+
+Status values: `healthy` → `degraded` (approaching threshold) → `overloaded` (rejecting requests).
+
+**gRPC** `HealthCheck` returns the same fields via protobuf.
+
+## When to Use This vs. Alternatives
+
+| | py-gpu-inference | Triton + TensorRT | HuggingFace TEI | FastAPI wrapper |
+|---|---|---|---|---|
+| **Setup complexity** | `pip install -e .` | ONNX export, TRT build, model repo config | Docker pull | ~50 lines |
+| **Batching** | Token-bucket (length-aware) | Dynamic batching (count-based) | Continuous batching | None |
+| **Admission control** | Throughput + latency | None built-in | Queue limits | None |
+| **CUDA graphs** | Yes (thread-aware) | Yes (via TRT) | Yes | No |
+| **Control token handling** | Fused exclusion | Manual post-processing | No | Manual |
+| **Best for** | When you need smart batching + backpressure in pure Python | Maximum raw throughput | Quick deployment | Prototyping |
 
 ## License
 
-Apache 2.0
+Apache 2.0 — see [LICENSE](../LICENSE) for details.
