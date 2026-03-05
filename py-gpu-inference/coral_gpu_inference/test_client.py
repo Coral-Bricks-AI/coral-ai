@@ -25,33 +25,22 @@ async def test_infer():
         
         print("🔌 Connected to gpu_inference server at localhost:50051")
         
-        # Create sample tokenized data (simulating what gateway would send)
-        # Let's create 3 items with bucket_max_len=32
         batch_size = 3
         seq_len = 32
         
-        # Mock input_ids and attention_mask (normally from tokenizer)
-        input_ids_data = np.random.randint(0, 30000, size=(batch_size, seq_len))
+        # Mock tokenized input (normally produced by a tokenizer)
+        input_ids_data = np.random.randint(0, 30000, size=(batch_size, seq_len)).astype(np.int32)
         attention_mask_data = np.ones((batch_size, seq_len), dtype=np.int32)
         
-        # Convert to protobuf format
-        input_ids_rows = []
-        attention_mask_rows = []
-        
-        for i in range(batch_size):
-            input_ids_rows.append(
-                inference_pb2.TensorRow(values=input_ids_data[i].tolist())
-            )
-            attention_mask_rows.append(
-                inference_pb2.TensorRow(values=attention_mask_data[i].tolist())
-            )
-        
+        # Use the bulk bytes format (preferred over per-row TensorRow)
         request = inference_pb2.InferRequest(
             request_id="test-request-001",
-            input_ids=input_ids_rows,
-            attention_mask=attention_mask_rows,
+            input_ids_bytes=input_ids_data.tobytes(),
+            attention_mask_bytes=attention_mask_data.tobytes(),
+            num_items=batch_size,
+            seq_len=seq_len,
             bucket_max_len=seq_len,
-            max_wait_ms=5000
+            max_wait_ms=10000,
         )
         
         print(f"📤 Sending Infer request:")
@@ -66,14 +55,18 @@ async def test_infer():
             
             if response.status == inference_pb2.COMPLETED:
                 print(f"✅ Success! ({elapsed_ms:.1f}ms)")
-                print(f"   - Received {len(response.embeddings)} embeddings")
-                if response.embeddings:
-                    emb_dim = len(response.embeddings[0].values)
-                    print(f"   - Embedding dimension: {emb_dim}")
+                emb_dim = response.embedding_dim
+                embeddings = np.frombuffer(
+                    response.embeddings_bytes, dtype=np.float32
+                ).reshape(-1, emb_dim)
+                norms = np.linalg.norm(embeddings, axis=1)
+                print(f"   - Received {embeddings.shape[0]} embeddings")
+                print(f"   - Embedding dimension: {emb_dim}")
+                print(f"   - L2 norms (should be ~1.0): {norms}")
                 print(f"   - Server timings:")
-                print(f"     • queue_wait: {response.timings.queue_wait_ms:.1f}ms")
-                print(f"     • encoding: {response.timings.encoding_ms:.1f}ms")
-                print(f"     • total: {response.timings.total_ms:.1f}ms")
+                print(f"     queue_wait: {response.timings.queue_wait_ms:.1f}ms")
+                print(f"     encoding: {response.timings.encoding_ms:.1f}ms")
+                print(f"     total: {response.timings.total_ms:.1f}ms")
             else:
                 print(f"❌ Error: {response.error_code} - {response.error_message}")
                 
