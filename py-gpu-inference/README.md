@@ -76,16 +76,30 @@ Client Response
 
 ## Quick Start
 
-### Install
+### Option 1: Clone and run (recommended)
 
 ```bash
+git clone https://github.com/Coral-Bricks-AI/coral-ai.git
+cd coral-ai/py-gpu-inference
+
+pip install -r requirements.txt        # core deps
+pip install boto3                      # optional: S3 model loading + CloudWatch metrics
+pip install flash-attn                 # optional: Flash Attention 2 (Ampere+ GPUs)
+
+python -m coral_gpu_inference.grpc_server
+```
+
+### Option 2: Install as a package
+
+```bash
+# From a local clone
 pip install -e .
 
-# Optional: S3 model loading
-pip install -e ".[s3]"
+# Directly from GitHub (no clone needed)
+pip install "coral-gpu-inference @ git+https://github.com/Coral-Bricks-AI/coral-ai.git#subdirectory=py-gpu-inference"
 
-# Optional: Flash Attention 2 (Ampere+ GPUs)
-pip install -e ".[flash-attn]"
+# With optional extras
+pip install -e ".[s3,flash-attn]"
 ```
 
 ### Run
