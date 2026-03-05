@@ -4,11 +4,18 @@
 [![Python 3.10+](https://img.shields.io/pypi/pyversions/coral-gpu-inference.svg)](https://pypi.org/project/coral-gpu-inference/)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](../LICENSE)
 
-A production gRPC embedding server that squeezes maximum throughput from a single GPU — without wasting compute on padding, without crashing under load, and without the complexity of Triton/TensorRT.
+Production-grade GPU embedding inference in pure Python. No ONNX export, no TensorRT compilation, no C++ debugging — just `pip install` and serve.
 
-Most embedding servers batch by item count: "take the next 32 requests." If one request is 10 tokens and another is 500, the short one gets padded to 500 — wasting 98% of its compute. They also lack admission control, so a traffic spike queues unboundedly until OOM or timeout.
+Getting production throughput from a transformer model typically means leaving Python behind: export to ONNX, compile a TensorRT engine, configure a Triton model repository, and debug performance issues in C++. That's a steep tax for ML engineers who think in Python and PyTorch.
 
-`py-gpu-inference` fixes both problems with a token-bucket batching architecture and dual-strategy backpressure, while staying in pure Python/PyTorch.
+`py-gpu-inference` stays entirely in Python/PyTorch while delivering the infrastructure that actually matters for production: intelligent batching that doesn't waste compute on padding, admission control that doesn't crash under load, and `torch.compile` with CUDA graphs for near-TensorRT forward-pass speed. You keep your HuggingFace model, your familiar debugging tools, and your iteration speed.
+
+```bash
+pip install coral-gpu-inference
+python -m coral_gpu_inference.grpc_server
+```
+
+That's it. Your model is now behind a gRPC server with token-bucket batching, backpressure, and GPU-optimized inference — no toolchain switch required.
 
 ## What's Different
 
@@ -184,12 +191,14 @@ Status values: `healthy` → `degraded` (approaching threshold) → `overloaded`
 
 | | py-gpu-inference | Triton + TensorRT | HuggingFace TEI | FastAPI wrapper |
 |---|---|---|---|---|
-| **Setup complexity** | `pip install -e .` | ONNX export, TRT build, model repo config | Docker pull | ~50 lines |
+| **Language** | Pure Python/PyTorch | C++, Python config | Rust | Python |
+| **Setup** | `pip install` | ONNX export → TRT build → model repo config | Docker pull | ~50 lines |
+| **Debug with** | pdb, print, PyTorch profiler | C++ traces, Nsight | Rust logs | pdb |
 | **Batching** | Token-bucket (length-aware) | Dynamic batching (count-based) | Continuous batching | None |
 | **Admission control** | Throughput + latency | None built-in | Queue limits | None |
 | **CUDA graphs** | Yes (thread-aware) | Yes (via TRT) | Yes | No |
 | **Control token handling** | Fused exclusion | Manual post-processing | No | Manual |
-| **Best for** | When you need smart batching + backpressure in pure Python | Maximum raw throughput | Quick deployment | Prototyping |
+| **Best for** | Production perf without leaving Python | Maximum raw throughput (when you can invest in the toolchain) | Quick deployment | Prototyping |
 
 ## License
 
