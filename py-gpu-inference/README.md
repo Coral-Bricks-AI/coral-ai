@@ -1,5 +1,9 @@
 # py-gpu-inference
 
+[![PyPI version](https://img.shields.io/pypi/v/coral-gpu-inference.svg)](https://pypi.org/project/coral-gpu-inference/)
+[![Python 3.10+](https://img.shields.io/pypi/pyversions/coral-gpu-inference.svg)](https://pypi.org/project/coral-gpu-inference/)
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](../LICENSE)
+
 A production gRPC embedding server that squeezes maximum throughput from a single GPU — without wasting compute on padding, without crashing under load, and without the complexity of Triton/TensorRT.
 
 Most embedding servers batch by item count: "take the next 32 requests." If one request is 10 tokens and another is 500, the short one gets padded to 500 — wasting 98% of its compute. They also lack admission control, so a traffic spike queues unboundedly until OOM or timeout.
@@ -76,7 +80,16 @@ Client Response
 
 ## Quick Start
 
-### Option 1: Clone and run (recommended)
+### Option 1: pip install from PyPI
+
+```bash
+pip install coral-gpu-inference
+
+# With optional extras
+pip install "coral-gpu-inference[s3,flash-attn]"
+```
+
+### Option 2: Clone and run
 
 ```bash
 git clone https://github.com/Coral-Bricks-AI/coral-ai.git
@@ -89,7 +102,7 @@ pip install flash-attn                 # optional: Flash Attention 2 (Ampere+ GP
 python -m coral_gpu_inference.grpc_server
 ```
 
-### Option 2: Install as a package
+### Option 3: Install from source
 
 ```bash
 # From a local clone
@@ -97,9 +110,6 @@ pip install -e .
 
 # Directly from GitHub (no clone needed)
 pip install "coral-gpu-inference @ git+https://github.com/Coral-Bricks-AI/coral-ai.git#subdirectory=py-gpu-inference"
-
-# With optional extras
-pip install -e ".[s3,flash-attn]"
 ```
 
 ### Run
