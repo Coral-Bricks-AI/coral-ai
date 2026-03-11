@@ -13,7 +13,7 @@ Requires Python 3.10+, [CrewAI](https://github.com/crewai/crewai), and [crewai-t
 ## API key and base URL
 
 - **API key:** Get a CoralBricks API key from the [CoralBricks web app](https://coralbricks.ai). Use it for all requests to the Memory API.
-- **Base URL:** The CoralBricks Memory API base URL (e.g. `https://api.coralbricks.ai` or the URL of your deployed memory-api instance).
+- **Base URL:** The CoralBricks Memory API base URL (e.g. `http://54.90.249.165` or the URL of your deployed memory-api instance).
 
 ## Quick start: client and memory
 
@@ -22,7 +22,7 @@ from coralbricks_crewai import CoralBricksClient, CoralBricksMemory
 
 client = CoralBricksClient(
     api_key="your_coralbricks_api_key",
-    base_url="https://api.coralbricks.ai",
+    base_url="http://54.90.249.165",
 )
 
 memory = CoralBricksMemory(
@@ -44,7 +44,7 @@ for h in hits:
 
 Give your agents a tool that searches CoralBricks memory by natural language:
 
-```python
+```pythonaf
 from crewai import Agent, Task, Crew, Process
 from coralbricks_crewai import (
     CoralBricksClient,
@@ -55,7 +55,7 @@ from coralbricks_crewai import (
 
 client = CoralBricksClient(
     api_key="your_coralbricks_api_key",
-    base_url="https://api.coralbricks.ai",
+    base_url="http://54.90.249.165",
 )
 memory = CoralBricksMemory(client, project_id="crewai:my-app", session_id="conv-123")
 set_global_memory(memory)
