@@ -18,35 +18,18 @@ pip install coralbricks-crewai
 
 Requires Python 3.10+ and [CrewAI](https://github.com/crewai/crewai).
 
-> If you're testing from TestPyPI, use:
->
-> ```bash
-> pip install --index-url https://test.pypi.org/simple/ \
->             --extra-index-url https://pypi.org/simple \
->             coralbricks-crewai
-> ```
-
 ---
 
 ## API key and base URL
 
 - **API key:** Get a Coralbricks API key from the [Coralbricks web app](https://coralbricks.ai). Use it for all requests to the Memory API.
-- **Base URL (hosted):**  
-  Recommended once DNS/SSL is set up:
-  ```
-  https://memory.coralbricks.ai
-  ```
-- **Base URL (self‑hosted / testing):**  
-  Use the URL of your deployed `memory-api` instance, e.g.:
-  ```
-  http://54.90.249.165
-  ```
+- **Base URL:** Use the Coralbricks CrewAI Memory API: `https://cw.coralbricks.ai`
 
 Environment variables (optional but convenient):
 
 ```bash
 export CORALBRICKS_API_KEY="your_coralbricks_api_key"
-export CORAL_MEMORY_BASE_URL="https://memory.coralbricks.ai"
+export CORAL_MEMORY_BASE_URL="https://cw.coralbricks.ai"
 ```
 
 ---
@@ -60,7 +43,7 @@ from coralbricks_crewai import CoralBricksClient, CoralBricksMemory
 
 client = CoralBricksClient(
     api_key="your_coralbricks_api_key",
-    base_url="https://memory.coralbricks.ai",  # or http://54.90.249.165
+    base_url="https://cw.coralbricks.ai",
 )
 
 memory = CoralBricksMemory(
@@ -81,7 +64,21 @@ for h in hits:
     print(h.get("score"), h.get("text"))
 ```
 
-Under the hood this calls the Coralbricks Memory API `/v1/memory/save` and `/v1/memory/query` against the `coralbricks_memory` collection.
+Under the hood this calls the Coralbricks Memory API at `https://cw.coralbricks.ai` (`/v1/memory/save`, `/v1/memory/query`).
+
+---
+
+## Before vs after: what Coralbricks adds
+
+**Without Coralbricks:** A CrewAI travel agent gives a **generic** 2-day Tokyo itinerary—same for every user.
+
+**With Coralbricks:** You store a **memory** (e.g. “Team prefers staying near Shibuya station, loves ramen, hates long queues”). The agent **searches** that memory and returns a **personalized** itinerary. You’ll see phrases that only appear because of memory, for example:
+
+- *“Location near **Shibuya** matches your preference.”*
+- *“You can have **ramen** for breakfast.”*
+- *“**Short queues**” or “avoid long waits.”*
+
+So: **without Coral** → generic answer; **with Coral** → same agent, but it **recalls preferences** and weaves them into the plan. The only extra pieces are: **CoralBricks client + memory**, **`set_global_memory(memory)`**, and the **`search_coralbricks_memory()`** tool on the agent.
 
 ---
 
@@ -106,7 +103,7 @@ llm = ChatOpenAI(model="gpt-4o-mini")
 # 2. Coralbricks client + memory
 client = CoralBricksClient(
     api_key="your_coralbricks_api_key",
-    base_url="https://memory.coralbricks.ai",  # or http://54.90.249.165
+    base_url="https://cw.coralbricks.ai",
 )
 memory = CoralBricksMemory(
     client=client,
@@ -167,8 +164,6 @@ This pattern shows Coralbricks being used as **long‑term memory** across steps
    Answer might be:
 
    > "For your booking at Hotel Tokyo Plaza (ref XYZ123, March 15), cancellations within 24 hours incur a $50 fee; earlier cancellations are fully refunded."
-
-A full runnable script that implements this 2‑hop flow (with a custom save tool + the Coralbricks search tool) lives in this repo as `docs/examples/crew_2hop_hotel.py`. You can adapt that pattern into your own app.
 
 ---
 
