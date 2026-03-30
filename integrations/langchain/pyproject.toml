@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "coralbricks-langchain"
-version = "0.2.0"
+version = "0.2.1"
 description = "CoralBricks + LangChain integration: retriever, chat history, memory helper, and agent tools."
 readme = "README.md"
 license = "Apache-2.0"
