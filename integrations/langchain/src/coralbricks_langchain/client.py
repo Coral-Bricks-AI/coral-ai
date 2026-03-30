@@ -26,10 +26,10 @@ class CoralBricksClient:
     Args:
         api_key: Your CoralBricks API key (sent as ``x-api-key`` header).
         base_url: Root URL of the memory-api service.
-                  Defaults to ``https://cw.coralbricks.ai``.
+                  Defaults to ``https://memory.coralbricks.ai``.
     """
 
-    DEFAULT_BASE_URL = "https://cw.coralbricks.ai"
+    DEFAULT_BASE_URL = "https://memory.coralbricks.ai"
 
     def __init__(
         self,
