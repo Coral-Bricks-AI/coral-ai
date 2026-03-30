@@ -23,11 +23,11 @@ Requires Python 3.10+ and LangChain >= 1.0.
 ## API key and base URL
 
 - **API key:** Get a CoralBricks API key from the [CoralBricks web app](https://coralbricks.ai).
-- **Base URL:** `https://cw.coralbricks.ai`
+- **Base URL:** `https://memory.coralbricks.ai`
 
 ```bash
 export CORALBRICKS_API_KEY="your_coralbricks_api_key"
-export CORAL_MEMORY_BASE_URL="https://cw.coralbricks.ai"
+export CORAL_MEMORY_BASE_URL="https://memory.coralbricks.ai"
 ```
 
 ---
@@ -39,7 +39,7 @@ from coralbricks_langchain import CoralBricksClient, CoralBricksMemory
 
 client = CoralBricksClient(
     api_key="your_coralbricks_api_key",
-    base_url="https://cw.coralbricks.ai",
+    base_url="https://memory.coralbricks.ai",
 )
 
 memory = CoralBricksMemory(

@@ -23,13 +23,13 @@ Requires Python 3.10+ and [CrewAI](https://github.com/crewai/crewai).
 ## API key and base URL
 
 - **API key:** Get a Coralbricks API key from the [Coralbricks web app](https://coralbricks.ai). Use it for all requests to the Memory API.
-- **Base URL:** Use the Coralbricks CrewAI Memory API: `https://cw.coralbricks.ai`
+- **Base URL:** Use the Coralbricks CrewAI Memory API: `https://memory.coralbricks.ai`
 
 Environment variables (optional but convenient):
 
 ```bash
 export CORALBRICKS_API_KEY="your_coralbricks_api_key"
-export CORAL_MEMORY_BASE_URL="https://cw.coralbricks.ai"
+export CORAL_MEMORY_BASE_URL="https://memory.coralbricks.ai"
 ```
 
 ---
@@ -43,7 +43,7 @@ from coralbricks_crewai import CoralBricksClient, CoralBricksMemory
 
 client = CoralBricksClient(
     api_key="your_coralbricks_api_key",
-    base_url="https://cw.coralbricks.ai",
+    base_url="https://memory.coralbricks.ai",
 )
 
 memory = CoralBricksMemory(
@@ -64,7 +64,7 @@ for h in hits:
     print(h.get("score"), h.get("text"))
 ```
 
-Under the hood this calls the Coralbricks Memory API at `https://cw.coralbricks.ai` (`/v1/memory/save`, `/v1/memory/query`).
+Under the hood this calls the Coralbricks Memory API at `https://memory.coralbricks.ai` (`/v1/memory/save`, `/v1/memory/query`).
 
 ---
 
@@ -103,7 +103,7 @@ llm = ChatOpenAI(model="gpt-4o-mini")
 # 2. Coralbricks client + memory
 client = CoralBricksClient(
     api_key="your_coralbricks_api_key",
-    base_url="https://cw.coralbricks.ai",
+    base_url="https://memory.coralbricks.ai",
 )
 memory = CoralBricksMemory(
     client=client,
