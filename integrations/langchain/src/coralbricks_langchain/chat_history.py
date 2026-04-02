@@ -6,14 +6,13 @@ that accepts a BaseChatMessageHistory.
 
 Usage::
 
-    from coralbricks_langchain import CoralBricksClient, CoralBricksChatMessageHistory
+    from coralbricks_langchain import CoralBricksMemory, CoralBricksChatMessageHistory
 
-    client = CoralBricksClient(api_key="cb-...")
-    history = CoralBricksChatMessageHistory(client=client, conversation_id="conv-001")
-
-    history.add_user_message("Hello!")
-    history.add_ai_message("Hi, how can I help?")
-    print(history.messages)
+    memory = CoralBricksMemory(api_key="cb-...")
+    history = CoralBricksChatMessageHistory(
+        client=memory.client,
+        conversation_id="conv-001",
+    )
 """
 
 from __future__ import annotations
@@ -50,7 +49,8 @@ class CoralBricksChatMessageHistory(BaseChatMessageHistory):
     and fetched lazily when the ``messages`` property is accessed.
 
     Args:
-        client: A configured :class:`~coralbricks_langchain.client.CoralBricksClient`.
+        client: A :class:`~coralbricks_langchain.client.CoralBricksClient`
+                (accessible via ``memory.client``).
         conversation_id: Unique string identifying this conversation.
         limit: Maximum number of messages to retrieve (default 500).
 
@@ -103,4 +103,3 @@ class CoralBricksChatMessageHistory(BaseChatMessageHistory):
         To start a fresh conversation, instantiate a new
         ``CoralBricksChatMessageHistory`` with a different ``conversation_id``.
         """
-        pass

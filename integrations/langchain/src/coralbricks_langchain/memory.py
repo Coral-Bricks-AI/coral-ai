@@ -1,7 +1,7 @@
 """CoralBricksMemory: high-level memory helper for LangChain applications.
 
-Wraps CoralBricksClient with save, search, and delete convenience methods
-so callers never need to touch the raw HTTP client directly.
+Creates its own CoralBricksClient internally — callers only provide
+api_key and (optionally) base_url.  Mirrors the crewAI CoralBricksMemory API.
 """
 
 from __future__ import annotations
@@ -12,26 +12,55 @@ from .client import CoralBricksClient
 
 
 class CoralBricksMemory:
-    """High-level wrapper around :class:`CoralBricksClient`.
-
-    All operations are automatically scoped to ``project_id`` and
-    ``session_id`` when provided.
+    """High-level memory wrapper for LangChain applications.
 
     Args:
-        client: A configured :class:`CoralBricksClient` instance.
-        project_id: Optional project namespace (shared across crews/agents).
+        api_key: Your CoralBricks API key.
+        base_url: Root URL of the memory-api service.
+        project_id: Optional project namespace (shared across agents).
         session_id: Optional session or user namespace.
     """
 
     def __init__(
         self,
-        client: CoralBricksClient,
+        api_key: str,
+        base_url: str = CoralBricksClient.DEFAULT_BASE_URL,
         project_id: Optional[str] = None,
         session_id: Optional[str] = None,
     ) -> None:
-        self.client = client
+        self.client = CoralBricksClient(api_key=api_key, base_url=base_url)
         self.project_id = project_id
         self.session_id = session_id
+        self.store_name: Optional[str] = None
+
+    def set_project_id(self, project_id: str) -> None:
+        self.project_id = project_id
+
+    def set_session_id(self, session_id: str) -> None:
+        self.session_id = session_id
+
+    # ------------------------------------------------------------------
+    # Store management
+    # ------------------------------------------------------------------
+
+    def create_memory_store(self, store_name: str) -> "CoralBricksMemory":
+        """Create a new memory store.
+
+        All subsequent save/search/forget calls will target this store.
+        Raises if the store already exists.
+        """
+        self.client.create_memory_store(store_name)
+        self.store_name = store_name
+        return self
+
+    def get_or_create_memory_store(self, store_name: str) -> "CoralBricksMemory":
+        """Attach to an existing memory store, or create it if it doesn't exist.
+
+        Idempotent — safe to call on every startup.
+        """
+        self.client.get_or_create_memory_store(store_name)
+        self.store_name = store_name
+        return self
 
     # ------------------------------------------------------------------
     # High-level helpers
@@ -46,77 +75,42 @@ class CoralBricksMemory:
 
         Returns the CoralBricks memory id assigned by the server.
         """
-        item: Dict[str, Any] = {"text": text}
-        if metadata:
-            item["metadata"] = metadata
-        saved = self.client.save(
-            items=[item],
+        return self.client.store(
+            text=text,
             project_id=self.project_id,
             session_id=self.session_id,
+            metadata=metadata,
+            store_name=self.store_name,
         )
-        if not saved:
-            raise RuntimeError("CoralBricks /v1/memory/save returned no items")
-        mem_id = saved[0].get("id")
-        if not isinstance(mem_id, str):
-            raise RuntimeError("CoralBricks /v1/memory/save did not return an id")
-        return mem_id
 
     def search_memory(
         self,
         query: str,
         top_k: int = 5,
-        filters: Optional[Dict[str, Any]] = None,
     ) -> List[Dict[str, Any]]:
         """Search memory by natural-language *query*.
 
         Returns a list of hit dicts each containing at minimum
-        ``id``, ``text``, ``metadata``, ``created_at``, and ``score``.
+        ``text``, ``score``, and ``id``.
         """
-        return self.client.query(
+        return self.client.search(
             query=query,
             top_k=top_k,
             project_id=self.project_id,
             session_id=self.session_id,
-            filters=filters,
-            include_score=True,
+            store_name=self.store_name,
         )
 
-    def delete_memory(self, ids: List[str]) -> int:
-        """Delete one or more memory items by their IDs.
+    def forget_memory(self, query: str, top_k: int = 5) -> Dict[str, Any]:
+        """Forget memories that match a semantic query.
 
-        Returns the number of records confirmed deleted by the server.
+        Finds the top_k closest memories to the query and deletes them.
+        Returns dict with forgotten_count and forgotten_ids.
         """
-        return self.client.delete(ids)
-
-    # ------------------------------------------------------------------
-    # Lower-level helpers (callers that manage embeddings themselves)
-    # ------------------------------------------------------------------
-
-    def store_with_embedding(
-        self,
-        text: str,
-        embedding: List[float],
-        metadata: Optional[Dict[str, Any]] = None,
-    ) -> str:
-        """Bypass the server-side embed step and store a pre-computed vector."""
-        return self.client.store(
-            text=text,
-            embedding=embedding,
-            project_id=self.project_id,
-            session_id=self.session_id,
-            metadata=metadata,
-        )
-
-    def search_with_embedding(
-        self,
-        embedding: List[float],
-        top_k: int = 5,
-    ) -> List[Dict[str, Any]]:
-        """Search with a pre-computed query embedding."""
-        return self.client.query(
-            embedding=embedding,
+        return self.client.forget(
+            query=query,
             top_k=top_k,
             project_id=self.project_id,
             session_id=self.session_id,
-            include_score=True,
+            store_name=self.store_name,
         )

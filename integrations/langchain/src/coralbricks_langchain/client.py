@@ -1,16 +1,10 @@
 """HTTP client for the CoralBricks Memory API.
 
-Extends the base client used by the crewAI integration with additional
-methods for the v1 REST surface:
+Provides the same core surface as the crewAI client (store, search, forget,
+store management) plus LangChain-specific chat-history endpoints:
 
-  POST /v1/memory/save    – batch-save memory items
-  POST /v1/memory/query   – semantic search (v1)
-  POST /v1/memory/delete  – delete memories by ID
-  POST /v1/memory/chat    – append a chat message
-  GET  /v1/memory/chat    – list chat messages for a conversation
-
-The legacy /embed, /store, /search endpoints are also present and behave
-identically to the crewAI client for parity.
+  POST /v1/memory/chat  – append a chat message
+  GET  /v1/memory/chat  – list chat messages for a conversation
 """
 
 from __future__ import annotations
@@ -58,7 +52,9 @@ class CoralBricksClient:
             )
         return data
 
-    def _get(self, path: str, params: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    def _get(
+        self, path: str, params: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
         url = f"{self.base_url}{path}"
         resp = requests.get(
             url, headers=self._headers, params=params or {}, timeout=30
@@ -72,35 +68,48 @@ class CoralBricksClient:
         return data
 
     # ------------------------------------------------------------------
-    # Legacy endpoints (parity with crewAI client)
+    # Store management
     # ------------------------------------------------------------------
 
-    def embed(self, text: str) -> List[float]:
-        """Call ``/embed`` to obtain an embedding vector for *text*."""
-        data = self._post("/embed", {"text": text})
-        emb = data.get("embedding")
-        if not isinstance(emb, list):
-            raise RuntimeError("CoralBricks /embed returned invalid embedding")
-        return [float(x) for x in emb]
+    def create_memory_store(self, store_name: str) -> Dict[str, Any]:
+        """Create a new memory store (TurboPuffer namespace).
+
+        Returns dict with store_name, namespace, and created flag.
+        Raises if the store already exists (HTTP 409).
+        """
+        return self._post("/v1/memory/stores", {"store_name": store_name})
+
+    def get_or_create_memory_store(self, store_name: str) -> Dict[str, Any]:
+        """Get an existing memory store or create it. Idempotent.
+
+        Returns dict with store_name, namespace, and created flag.
+        """
+        return self._post(
+            "/v1/memory/stores/get_or_create", {"store_name": store_name}
+        )
+
+    # ------------------------------------------------------------------
+    # Core memory operations
+    # ------------------------------------------------------------------
 
     def store(
         self,
         text: str,
-        embedding: Optional[List[float]] = None,
         project_id: Optional[str] = None,
         session_id: Optional[str] = None,
         metadata: Optional[Dict[str, Any]] = None,
+        store_name: Optional[str] = None,
     ) -> str:
-        """Store a memory item via ``/store``. Returns the new memory id."""
+        """Store a memory item. Returns the new memory id."""
         payload: Dict[str, Any] = {"text": text}
-        if embedding is not None:
-            payload["embedding"] = embedding
         if project_id is not None:
             payload["project_id"] = project_id
         if session_id is not None:
             payload["session_id"] = session_id
         if metadata is not None:
             payload["metadata"] = metadata
+        if store_name is not None:
+            payload["store"] = store_name
         data = self._post("/store", payload)
         mem_id = data.get("id")
         if not isinstance(mem_id, str):
@@ -109,99 +118,54 @@ class CoralBricksClient:
 
     def search(
         self,
-        query: Optional[str] = None,
-        embedding: Optional[List[float]] = None,
+        query: str,
         top_k: int = 5,
         project_id: Optional[str] = None,
         session_id: Optional[str] = None,
+        store_name: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
-        """Search memories via ``/search``. Returns a list of result dicts."""
-        if embedding is None and (query is None or not query.strip()):
-            raise ValueError("Either query text or embedding must be provided")
-        payload: Dict[str, Any] = {"top_k": top_k}
-        if query is not None:
-            payload["query"] = query
-        if embedding is not None:
-            payload["embedding"] = embedding
+        """Search memories by query text. Returns list of result dicts."""
+        if not query or not query.strip():
+            raise ValueError("query must be non-empty")
+        payload: Dict[str, Any] = {"query": query, "top_k": top_k}
         if project_id is not None:
             payload["project_id"] = project_id
         if session_id is not None:
             payload["session_id"] = session_id
+        if store_name is not None:
+            payload["store"] = store_name
         data = self._post("/search", payload)
         results = data.get("results")
         if not isinstance(results, list):
             return []
         return [r for r in results if isinstance(r, dict)]
 
-    # ------------------------------------------------------------------
-    # v1 endpoints
-    # ------------------------------------------------------------------
-
-    def save(
+    def forget(
         self,
-        items: List[Dict[str, Any]],
-        project_id: Optional[str] = None,
-        session_id: Optional[str] = None,
-    ) -> List[Dict[str, Any]]:
-        """Batch-save memory items via ``POST /v1/memory/save``.
-
-        Each item must have at least a ``text`` key. Optional keys:
-        ``type``, ``metadata``, ``client_id``.
-
-        Returns a list of ``{id, client_id, status}`` dicts.
-        """
-        payload: Dict[str, Any] = {"items": items}
-        if project_id is not None:
-            payload["project_id"] = project_id
-        if session_id is not None:
-            payload["session_id"] = session_id
-        data = self._post("/v1/memory/save", payload)
-        return data.get("items", [])
-
-    def query(
-        self,
-        query: Optional[str] = None,
-        embedding: Optional[List[float]] = None,
+        query: str,
         top_k: int = 5,
         project_id: Optional[str] = None,
         session_id: Optional[str] = None,
-        filters: Optional[Dict[str, Any]] = None,
-        include_score: bool = True,
-    ) -> List[Dict[str, Any]]:
-        """Semantic search via ``POST /v1/memory/query``.
+        store_name: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Forget memories matching a semantic query.
 
-        Returns a list of hit dicts each containing ``id``, ``text``,
-        ``metadata``, ``created_at``, and optionally ``score``.
+        Returns dict with forgotten_count and forgotten_ids.
         """
-        if embedding is None and (query is None or not query.strip()):
-            raise ValueError("Either query text or embedding must be provided")
-        payload: Dict[str, Any] = {"top_k": top_k, "include_score": include_score}
-        if query is not None:
-            payload["query"] = query
-        if embedding is not None:
-            payload["embedding"] = embedding
+        if not query or not query.strip():
+            raise ValueError("query must be non-empty")
+        payload: Dict[str, Any] = {"query": query, "top_k": top_k}
         if project_id is not None:
             payload["project_id"] = project_id
         if session_id is not None:
             payload["session_id"] = session_id
-        if filters is not None:
-            payload["filters"] = filters
-        data = self._post("/v1/memory/query", payload)
-        hits = data.get("hits")
-        if not isinstance(hits, list):
-            return []
-        return [h for h in hits if isinstance(h, dict)]
+        if store_name is not None:
+            payload["store"] = store_name
+        return self._post("/v1/memory/forget", payload)
 
-    def delete(self, ids: List[str]) -> int:
-        """Delete memories by ID via ``POST /v1/memory/delete``.
-
-        Returns the number of records deleted (``deleted_count`` from the API).
-        Note: currently returns 0 as the API stub is best-effort.
-        """
-        if not ids:
-            raise ValueError("ids must be a non-empty list")
-        data = self._post("/v1/memory/delete", {"ids": ids})
-        return int(data.get("deleted_count", 0))
+    # ------------------------------------------------------------------
+    # Chat history endpoints (LangChain-specific)
+    # ------------------------------------------------------------------
 
     def append_chat(
         self,
@@ -210,11 +174,7 @@ class CoralBricksClient:
         content: str,
         chunk_ids: Optional[List[str]] = None,
     ) -> Dict[str, Any]:
-        """Append a message to a conversation via ``POST /v1/memory/chat``.
-
-        Returns API response dict with ``message_id``, ``conversation_id``,
-        ``role``, ``message_index``, and ``created_at``.
-        """
+        """Append a message to a conversation via ``POST /v1/memory/chat``."""
         if not conversation_id or not conversation_id.strip():
             raise ValueError("conversation_id must be a non-empty string")
         if role not in ("user", "assistant", "system"):
@@ -233,12 +193,7 @@ class CoralBricksClient:
         conversation_id: str,
         limit: int = 500,
     ) -> List[Dict[str, Any]]:
-        """List messages for a conversation via ``GET /v1/memory/chat``.
-
-        Returns list of message dicts ordered by ``message_index``, each
-        containing ``message_id``, ``conversation_id``, ``role``, ``content``,
-        ``created_at``, and ``chunk_ids``.
-        """
+        """List messages for a conversation via ``GET /v1/memory/chat``."""
         if not conversation_id or not conversation_id.strip():
             raise ValueError("conversation_id must be a non-empty string")
         data = self._get(
