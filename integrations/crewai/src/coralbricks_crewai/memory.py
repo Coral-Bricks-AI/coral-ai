@@ -15,62 +15,75 @@ from .client import CoralBricksClient
 class CoralBricksMemory:
   def __init__(
     self,
-    client: CoralBricksClient,
+    api_key: str,
+    base_url: str = CoralBricksClient.DEFAULT_BASE_URL,
     project_id: str | None = None,
     session_id: str | None = None,
   ) -> None:
-    self.client = client
+    self.client = CoralBricksClient(api_key=api_key, base_url=base_url)
     self.project_id = project_id
     self.session_id = session_id
+    self.store_name: str | None = None
+
+  def set_project_id(self, project_id: str) -> None:
+    self.project_id = project_id
+
+  def set_session_id(self, session_id: str) -> None:
+    self.session_id = session_id
+
+  # Store management ------------------------------------------------------
+
+  def create_memory_store(self, store_name: str) -> "CoralBricksMemory":
+    """Create a new memory store (dedicated TurboPuffer index).
+
+    All subsequent save/search/forget calls will target this store.
+    Raises if the store already exists.
+    """
+    self.client.create_memory_store(store_name)
+    self.store_name = store_name
+    return self
+
+  def get_or_create_memory_store(self, store_name: str) -> "CoralBricksMemory":
+    """Attach to an existing memory store, or create it if it doesn't exist.
+
+    Idempotent — safe to call on every startup.
+    """
+    self.client.get_or_create_memory_store(store_name)
+    self.store_name = store_name
+    return self
 
   # High-level helpers ----------------------------------------------------
 
   def save_memory(self, text: str, metadata: Dict[str, Any] | None = None) -> str:
-    """Embed and store a single memory.
-
-    Returns the CoralBricks memory id.
-    """
-    embedding = self.client.embed(text)
+    """Store a memory. Returns the CoralBricks memory id."""
     return self.client.store(
       text=text,
-      embedding=embedding,
       project_id=self.project_id,
       session_id=self.session_id,
       metadata=metadata,
+      store_name=self.store_name,
     )
 
   def search_memory(self, query: str, top_k: int = 5) -> List[Dict[str, Any]]:
-    """Search memory by query string. Returns list of {text, score, ...}."""
+    """Search memory by meaning. Returns list of {text, score, ...}."""
     return self.client.search(
       query=query,
-      embedding=None,
       top_k=top_k,
       project_id=self.project_id,
       session_id=self.session_id,
+      store_name=self.store_name,
     )
 
-  # Lower-level helpers if callers want to manage embeddings themselves ----
+  def forget_memory(self, query: str, top_k: int = 5) -> Dict[str, Any]:
+    """Forget memories that match a semantic query.
 
-  def store_with_embedding(
-    self,
-    text: str,
-    embedding: List[float],
-    metadata: Dict[str, Any] | None = None,
-  ) -> str:
-    return self.client.store(
-      text=text,
-      embedding=embedding,
-      project_id=self.project_id,
-      session_id=self.session_id,
-      metadata=metadata,
-    )
-
-  def search_with_embedding(self, embedding: List[float], top_k: int = 5) -> List[Dict[str, Any]]:
-    return self.client.search(
-      query=None,
-      embedding=embedding,
+    Finds the top_k closest memories to the query and deletes them.
+    Returns dict with forgotten_count and forgotten_ids.
+    """
+    return self.client.forget(
+      query=query,
       top_k=top_k,
       project_id=self.project_id,
       session_id=self.session_id,
+      store_name=self.store_name,
     )
-

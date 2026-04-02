@@ -7,9 +7,11 @@ The memory layer for agentic AI. GPU-native embedding training, inference, and r
 | Package | Description | Status |
 |---------|-------------|--------|
 | [py-gpu-inference](py-gpu-inference/) | Production gRPC GPU embedding server with token-bucket batching and backpressure | Available |
+| [coralbricks-crewai](integrations/crewai/) | CrewAI integration — memory store, search tool, and forget | Available |
+| [coralbricks-langchain](integrations/langchain/) | LangChain integration — retriever, chat history, and agent tools | Available |
+| [persistent-agent-memory](integrations/openclaw/) | OpenClaw skill — bash-based store / retrieve / forget | Available |
 | contrastive-train | Multi-label contrastive training with safety guards | Coming soon |
 | vector-explain | Explainable vector search with field-level similarity | Coming soon |
-| integrations | LlamaIndex, CrewAI, and framework adapters | Coming soon |
 
 ## Quick Start
 

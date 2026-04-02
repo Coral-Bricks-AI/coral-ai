@@ -1,8 +1,4 @@
-"""HTTP client for the CoralBricks Memory API.
-
-This client talks to the internal CoralBricks memory-api service, which exposes
-simple /embed, /store, and /search endpoints.
-"""
+"""HTTP client for the CoralBricks Memory API."""
 
 from __future__ import annotations
 
@@ -12,7 +8,9 @@ import requests
 
 
 class CoralBricksClient:
-  def __init__(self, api_key: str, base_url: str) -> None:
+  DEFAULT_BASE_URL = "https://memory.coralbricks.ai"
+
+  def __init__(self, api_key: str, base_url: str = DEFAULT_BASE_URL) -> None:
     self.api_key = api_key
     self.base_url = base_url.rstrip("/")
     self._headers = {
@@ -31,34 +29,43 @@ class CoralBricksClient:
       raise RuntimeError(f"Unexpected response from CoralBricks ({path}): {data!r}")
     return data
 
-  # Public API ------------------------------------------------------------
+  # Store management ------------------------------------------------------
 
-  def embed(self, text: str) -> List[float]:
-    """Call /embed to get an embedding vector for text."""
-    data = self._post("/embed", {"text": text})
-    emb = data.get("embedding")
-    if not isinstance(emb, list):
-      raise RuntimeError("CoralBricks /embed returned invalid embedding")
-    return [float(x) for x in emb]
+  def create_memory_store(self, store_name: str) -> Dict[str, Any]:
+    """Create a new memory store (TurboPuffer namespace).
+
+    Returns dict with store_name, namespace, and created flag.
+    Raises if the store already exists (HTTP 409).
+    """
+    return self._post("/v1/memory/stores", {"store_name": store_name})
+
+  def get_or_create_memory_store(self, store_name: str) -> Dict[str, Any]:
+    """Get an existing memory store or create it. Idempotent.
+
+    Returns dict with store_name, namespace, and created flag.
+    """
+    return self._post("/v1/memory/stores/get_or_create", {"store_name": store_name})
+
+  # Public API ------------------------------------------------------------
 
   def store(
     self,
     text: str,
-    embedding: List[float] | None = None,
     project_id: str | None = None,
     session_id: str | None = None,
     metadata: Dict[str, Any] | None = None,
+    store_name: str | None = None,
   ) -> str:
     """Store a memory item. Returns the new memory id."""
     payload: Dict[str, Any] = {"text": text}
-    if embedding is not None:
-      payload["embedding"] = embedding
     if project_id is not None:
       payload["project_id"] = project_id
     if session_id is not None:
       payload["session_id"] = session_id
     if metadata is not None:
       payload["metadata"] = metadata
+    if store_name is not None:
+      payload["store"] = store_name
     data = self._post("/store", payload)
     mem_id = data.get("id")
     if not isinstance(mem_id, str):
@@ -67,31 +74,44 @@ class CoralBricksClient:
 
   def search(
     self,
-    query: str | None = None,
-    embedding: List[float] | None = None,
+    query: str,
     top_k: int = 5,
     project_id: str | None = None,
     session_id: str | None = None,
+    store_name: str | None = None,
   ) -> List[Dict[str, Any]]:
-    """Search memories by text or embedding. Returns list of result dicts."""
-    if embedding is None and (query is None or not query.strip()):
-      raise ValueError("Either query text or embedding must be provided")
-    payload: Dict[str, Any] = {"top_k": top_k}
-    if query is not None:
-      payload["query"] = query
-    if embedding is not None:
-      payload["embedding"] = embedding
+    """Search memories by query text. Returns list of result dicts."""
+    if not query or not query.strip():
+      raise ValueError("query must be non-empty")
+    payload: Dict[str, Any] = {"query": query, "top_k": top_k}
     if project_id is not None:
       payload["project_id"] = project_id
     if session_id is not None:
       payload["session_id"] = session_id
+    if store_name is not None:
+      payload["store"] = store_name
     data = self._post("/search", payload)
     results = data.get("results")
     if not isinstance(results, list):
       return []
-    cleaned: List[Dict[str, Any]] = []
-    for r in results:
-      if isinstance(r, dict):
-        cleaned.append(r)
-    return cleaned
+    return [r for r in results if isinstance(r, dict)]
 
+  def forget(
+    self,
+    query: str,
+    top_k: int = 5,
+    project_id: str | None = None,
+    session_id: str | None = None,
+    store_name: str | None = None,
+  ) -> Dict[str, Any]:
+    """Forget memories matching a semantic query. Returns forgotten count and ids."""
+    if not query or not query.strip():
+      raise ValueError("query must be non-empty")
+    payload: Dict[str, Any] = {"query": query, "top_k": top_k}
+    if project_id is not None:
+      payload["project_id"] = project_id
+    if session_id is not None:
+      payload["session_id"] = session_id
+    if store_name is not None:
+      payload["store"] = store_name
+    return self._post("/v1/memory/forget", payload)
