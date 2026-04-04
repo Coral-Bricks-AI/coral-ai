@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "coral-retrieval"
+version = "0.1.0"
+description = "Multi-source retrieval orchestration — vector, graph, and SQL behind one API."
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.10"
+authors = [
+    { name = "Coral Bricks AI", email = "eng@coralbricks.ai" },
+]
+keywords = [
+    "retrieval", "rag", "vector-search", "graph", "fusion",
+    "coralbricks", "multi-source", "orchestration",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = []
+
+[project.optional-dependencies]
+opensearch = ["opensearch-py>=2.4.0"]
+duckdb = ["duckdb>=1.0.0"]
+sql = ["sqlalchemy>=2.0.0"]
+all = [
+    "opensearch-py>=2.4.0",
+    "duckdb>=1.0.0",
+    "sqlalchemy>=2.0.0",
+]
+dev = ["pytest>=7.0"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
