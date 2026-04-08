@@ -43,16 +43,6 @@ class CoralBricksMemory:
     # Store management
     # ------------------------------------------------------------------
 
-    def create_memory_store(self, store_name: str) -> "CoralBricksMemory":
-        """Create a new memory store.
-
-        All subsequent save/search/forget calls will target this store.
-        Raises if the store already exists.
-        """
-        self.client.create_memory_store(store_name)
-        self.store_name = store_name
-        return self
-
     def get_or_create_memory_store(self, store_name: str) -> "CoralBricksMemory":
         """Attach to an existing memory store, or create it if it doesn't exist.
 
