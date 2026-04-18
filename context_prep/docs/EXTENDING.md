@@ -6,7 +6,7 @@ extractors without forking the library.
 ## Custom chunker
 
 ```python
-from context_prep.chunkers import BaseChunker, Chunk
+from coralbricks.context_prep.chunkers import BaseChunker, Chunk
 
 class FirstSentenceChunker(BaseChunker):
     name = "first_sentence"
@@ -16,14 +16,14 @@ class FirstSentenceChunker(BaseChunker):
         return [Chunk(text=first, start=0, end=len(first), token_count=len(first.split()))]
 
 # Use it directly with chunk():
-from context_prep import chunk
+from coralbricks.context_prep import chunk
 art = chunk(records, strategy=FirstSentenceChunker())
 ```
 
 ## Custom extractor
 
 ```python
-from context_prep.enrichers import BaseExtractor, ExtractionResult
+from coralbricks.context_prep.enrichers import BaseExtractor, ExtractionResult
 
 class LawCitationExtractor(BaseExtractor):
     name = "law_citations"
@@ -32,14 +32,14 @@ class LawCitationExtractor(BaseExtractor):
         # ... your regex / model ...
         return [ExtractionResult(value="42 U.S.C. § 1983", start=10, end=27, label="USC")]
 
-from context_prep import enrich
+from coralbricks.context_prep import enrich
 art = enrich(records, extractors=[LawCitationExtractor()])
 ```
 
 ## Custom embedder
 
 ```python
-from context_prep.embedders import BaseEmbedder
+from coralbricks.context_prep.embedders import BaseEmbedder
 
 class MyEmbedder(BaseEmbedder):
     def __init__(self, dim=768):
@@ -53,14 +53,14 @@ class MyEmbedder(BaseEmbedder):
     def get_model_name(self): return "my-embedder"
     def get_dimension(self):  return self._dim
 
-from context_prep import embed
+from coralbricks.context_prep import embed
 art = embed(chunks, embedder=MyEmbedder())
 ```
 
 ## Custom triple extractor (for graphs)
 
 ```python
-from context_prep.graph import BaseTripleExtractor, Triple
+from coralbricks.context_prep.graph import BaseTripleExtractor, Triple
 
 class CitationTripleExtractor(BaseTripleExtractor):
     name = "citations"
@@ -74,7 +74,7 @@ class CitationTripleExtractor(BaseTripleExtractor):
             ),
         ]
 
-from context_prep import hydrate
+from coralbricks.context_prep import hydrate
 graph = hydrate(records, graph="cases", extractors=[CitationTripleExtractor()])
 ```
 

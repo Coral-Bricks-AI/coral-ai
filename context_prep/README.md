@@ -52,7 +52,7 @@ pip install 'coralbricks-context-prep[all]'           # everything above
 ## 60-second quickstart
 
 ```python
-from context_prep import clean, chunk, embed, enrich, hydrate
+from coralbricks.context_prep import clean, chunk, embed, enrich, hydrate
 
 # Records you already loaded with whatever tool you like.
 records = [
@@ -104,8 +104,8 @@ directly inside your orchestrator's tasks:
 
 ```python
 # in a Ray / Prefect / Spark / Airflow task:
-from context_prep.chunkers import chunk_text
-from context_prep.embedders import create_embedder
+from coralbricks.context_prep.chunkers import chunk_text
+from coralbricks.context_prep.embedders import create_embedder
 
 embedder = create_embedder("st:BAAI/bge-m3", dimension=1024)
 
@@ -127,7 +127,7 @@ each shard to its own `vectors.parquet` (fixed-size float32 list
 column — Qdrant, pgvector, LanceDB, and DuckDB ingest it directly):
 
 ```python
-from context_prep.embedders import write_vectors_parquet
+from coralbricks.context_prep.embedders import write_vectors_parquet
 
 vectors, _ = embedder.embed_texts(texts)
 write_vectors_parquet(
@@ -144,7 +144,7 @@ For knowledge graphs, build per-shard graphs in parallel and combine
 them with `merge_graphs(*partials)`:
 
 ```python
-from context_prep.graph import hydrate_graph, merge_graphs
+from coralbricks.context_prep.graph import hydrate_graph, merge_graphs
 
 partials = pool.map(lambda shard: hydrate_graph(shard, extractors), shards)
 full = merge_graphs(*partials)   # nodes deduped, edge weights summed

@@ -15,8 +15,8 @@ If your input is HTML, prepend ``clean(records)`` (requires
 
 from __future__ import annotations
 
-from context_prep import chunk, embed
-from context_prep.embedders import BaseEmbedder
+from coralbricks.context_prep import chunk, embed
+from coralbricks.context_prep.embedders import BaseEmbedder
 
 
 class _FakeEmbedder(BaseEmbedder):

@@ -8,12 +8,12 @@ lazily by the factory.
 
 """
 
-from context_prep.embedders.base import BaseEmbedder
-from context_prep.embedders.embedder_factory import (
+from coralbricks.context_prep.embedders.base import BaseEmbedder
+from coralbricks.context_prep.embedders.embedder_factory import (
     create_embedder,
     list_supported_models,
 )
-from context_prep.embedders.parquet import write_vectors_parquet
+from coralbricks.context_prep.embedders.parquet import write_vectors_parquet
 
 __all__ = [
     "BaseEmbedder",
@@ -32,22 +32,22 @@ __all__ = [
 # Concrete embedders are imported lazily so callers that don't need them
 # don't pay the import-time cost of e.g. boto3 / sentence-transformers / torch.
 _LAZY = {
-    "OpenAIEmbedder": ("context_prep.embedders.openai_embedder", "OpenAIEmbedder"),
-    "CoralEmbedder": ("context_prep.embedders.coral_embedder", "CoralEmbedder"),
+    "OpenAIEmbedder": ("coralbricks.context_prep.embedders.openai_embedder", "OpenAIEmbedder"),
+    "CoralEmbedder": ("coralbricks.context_prep.embedders.coral_embedder", "CoralEmbedder"),
     "CoralGatewayEmbedder": (
-        "context_prep.embedders.coral_gateway_embedder",
+        "coralbricks.context_prep.embedders.coral_gateway_embedder",
         "CoralGatewayEmbedder",
     ),
     "BedrockEmbedder": (
-        "context_prep.embedders.bedrock_embedder",
+        "coralbricks.context_prep.embedders.bedrock_embedder",
         "BedrockEmbedder",
     ),
     "DeepInfraEmbedder": (
-        "context_prep.embedders.deepinfra_embedder",
+        "coralbricks.context_prep.embedders.deepinfra_embedder",
         "DeepInfraEmbedder",
     ),
     "SentenceTransformerEmbedder": (
-        "context_prep.embedders.sentence_transformer_embedder",
+        "coralbricks.context_prep.embedders.sentence_transformer_embedder",
         "SentenceTransformerEmbedder",
     ),
 }
@@ -61,4 +61,4 @@ def __getattr__(name: str):
         value = getattr(importlib.import_module(module_name), attr_name)
         globals()[name] = value
         return value
-    raise AttributeError(f"module 'context_prep.embedders' has no attribute {name!r}")
+    raise AttributeError(f"module 'coralbricks.context_prep.embedders' has no attribute {name!r}")

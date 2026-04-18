@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 
-from context_prep.chunkers.base import BaseChunker, Chunk
+from coralbricks.context_prep.chunkers.base import BaseChunker, Chunk
 
 DEFAULT_SEPARATORS: tuple[str, ...] = (
     "\n\n",

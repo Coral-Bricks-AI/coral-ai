@@ -93,23 +93,26 @@ Issues = "https://github.com/Coral-Bricks-AI/coral-ai/issues"
 Documentation = "https://github.com/Coral-Bricks-AI/coral-ai/tree/main/context_prep#readme"
 Changelog = "https://github.com/Coral-Bricks-AI/coral-ai/blob/main/context_prep/CHANGELOG.md"
 
-# The project root *is* the package root. `import context_prep` maps to
-# this directory; subpackages map to sibling dirs (`./chunkers`, etc.).
+# Source layout is flat (this dir IS the package root), but the install
+# layout puts everything under the `coralbricks.*` PEP 420 namespace
+# shared with other Coral Bricks OSS distributions and the closed-source
+# `coralbricks-platform` SDK. `package-dir` maps the importable names
+# back to the flat source tree.
 [tool.setuptools]
 packages = [
-    "context_prep",
-    "context_prep.chunkers",
-    "context_prep.embedders",
-    "context_prep.enrichers",
-    "context_prep.graph",
+    "coralbricks.context_prep",
+    "coralbricks.context_prep.chunkers",
+    "coralbricks.context_prep.embedders",
+    "coralbricks.context_prep.enrichers",
+    "coralbricks.context_prep.graph",
 ]
 
 [tool.setuptools.package-dir]
-context_prep = "."
-"context_prep.chunkers" = "chunkers"
-"context_prep.embedders" = "embedders"
-"context_prep.enrichers" = "enrichers"
-"context_prep.graph" = "graph"
+"coralbricks.context_prep" = "."
+"coralbricks.context_prep.chunkers" = "chunkers"
+"coralbricks.context_prep.embedders" = "embedders"
+"coralbricks.context_prep.enrichers" = "enrichers"
+"coralbricks.context_prep.graph" = "graph"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

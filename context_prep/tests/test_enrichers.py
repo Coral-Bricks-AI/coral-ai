@@ -1,8 +1,8 @@
-"""Tests for context_prep.enrichers."""
+"""Tests for coralbricks.context_prep.enrichers."""
 
 from __future__ import annotations
 
-from context_prep.enrichers import (
+from coralbricks.context_prep.enrichers import (
     REGISTRY,
     DateExtractor,
     EmailExtractor,

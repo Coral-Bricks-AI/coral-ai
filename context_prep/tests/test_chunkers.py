@@ -3,8 +3,7 @@
 from __future__ import annotations
 
 import pytest
-
-from context_prep.chunkers import (
+from coralbricks.context_prep.chunkers import (
     BaseChunker,
     Chunk,
     FixedTokenChunker,

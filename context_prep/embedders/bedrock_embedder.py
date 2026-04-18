@@ -10,7 +10,7 @@ from __future__ import annotations
 import json
 import time
 
-from context_prep.embedders.base import BaseEmbedder
+from coralbricks.context_prep.embedders.base import BaseEmbedder
 
 
 class BedrockEmbedder(BaseEmbedder):

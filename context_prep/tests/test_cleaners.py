@@ -1,10 +1,9 @@
-"""Tests for context_prep.cleaners (trafilatura)."""
+"""Tests for coralbricks.context_prep.cleaners (trafilatura)."""
 
 from __future__ import annotations
 
 import pytest
-
-from context_prep.cleaners import clean_documents, clean_html
+from coralbricks.context_prep.cleaners import clean_documents, clean_html
 
 trafilatura = pytest.importorskip("trafilatura")
 

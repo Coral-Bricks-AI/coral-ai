@@ -7,8 +7,8 @@ strategy for embedding-based RAG.
 
 from __future__ import annotations
 
-from context_prep.chunkers._tokens import get_tokenizer
-from context_prep.chunkers.base import BaseChunker, Chunk
+from coralbricks.context_prep.chunkers._tokens import get_tokenizer
+from coralbricks.context_prep.chunkers.base import BaseChunker, Chunk
 
 
 class SlidingTokenChunker(BaseChunker):

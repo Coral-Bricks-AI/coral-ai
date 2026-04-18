@@ -23,7 +23,7 @@ import numpy as np
 
 _logger = logging.getLogger(__name__)
 
-from context_prep.embedders.base import BaseEmbedder
+from coralbricks.context_prep.embedders.base import BaseEmbedder
 
 MODELS = {
     "bge-m3": {

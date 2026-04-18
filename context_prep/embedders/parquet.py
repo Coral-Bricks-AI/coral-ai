@@ -1,4 +1,4 @@
-"""Parquet writer for vectors produced by :func:`context_prep.embed`.
+"""Parquet writer for vectors produced by :func:`coralbricks.context_prep.embed`.
 
 Writes a single ``vectors.parquet`` file with one row per (chunk, vector)
 pair. The vector column is a **fixed-size float32 list** (the most

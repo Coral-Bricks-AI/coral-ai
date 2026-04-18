@@ -1,8 +1,8 @@
 """Shared dotenv discovery for embedders.
 
-Embedders historically read API keys from ``www/ml/embed/.env``. Now that
-the embedder code lives under ``context_prep/embedders``, we look in a
-few candidate locations so existing user setups keep working.
+Embedders historically read API keys from ``www/ml/embed/.env``. Now
+that the embedder code lives under ``coralbricks.context_prep.embedders``,
+we look in a few candidate locations so existing user setups keep working.
 """
 
 from __future__ import annotations

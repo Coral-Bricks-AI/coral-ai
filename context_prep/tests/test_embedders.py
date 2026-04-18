@@ -2,16 +2,15 @@
 
 These don't actually call any embedding API. They check:
 - The factory module is importable without optional API SDKs.
-- ``context_prep.embedders`` lazy-imports heavy backends only when accessed.
+- ``coralbricks.context_prep.embedders`` lazy-imports heavy backends only when accessed.
 - ``prep.embed()`` can run end-to-end against a fake embedder.
 """
 
 from __future__ import annotations
 
 import pytest
-
-from context_prep import embed
-from context_prep.embedders import (
+from coralbricks.context_prep import embed
+from coralbricks.context_prep.embedders import (
     BaseEmbedder,
     create_embedder,
     list_supported_models,
@@ -66,7 +65,7 @@ def test_prep_embed_dry_run_with_string_input():
 
 
 def test_prep_chunk_then_embed_pipes_text():
-    from context_prep import chunk
+    from coralbricks.context_prep import chunk
 
     text = "Coral Bricks is a memory layer. " * 40
     chunks_art = chunk(text, strategy="sliding_token", target_tokens=32, overlap=4)
@@ -81,7 +80,7 @@ def test_prep_embed_writes_vectors_parquet(tmp_path):
     pa = pytest.importorskip("pyarrow")
     pq = pytest.importorskip("pyarrow.parquet")
 
-    from context_prep import chunk
+    from coralbricks.context_prep import chunk
 
     text = "Coral Bricks is a memory layer. " * 20
     chunks_art = chunk(text, strategy="sliding_token", target_tokens=32, overlap=4)
@@ -140,7 +139,7 @@ def test_prep_embed_forwards_embedder_kwargs(monkeypatch):
         seen.update(kwargs)
         return _FakeEmbedder(dim=4)
 
-    import context_prep.embedders as emb_pkg
+    import coralbricks.context_prep.embedders as emb_pkg
 
     monkeypatch.setattr(emb_pkg, "create_embedder", fake_create_embedder)
 
@@ -156,7 +155,7 @@ def test_prep_embed_forwards_embedder_kwargs(monkeypatch):
 
 def test_write_vectors_parquet_validates_lengths(tmp_path):
     pytest.importorskip("pyarrow")
-    from context_prep.embedders import write_vectors_parquet
+    from coralbricks.context_prep.embedders import write_vectors_parquet
 
     with pytest.raises(ValueError):
         write_vectors_parquet(["a", "b"], [[0.1, 0.2, 0.3]], tmp_path, model="fake", dimension=3)
