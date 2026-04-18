@@ -36,7 +36,8 @@ from __future__ import annotations
 
 import os
 import uuid
-from typing import Any, Iterable, Optional, Union
+from collections.abc import Iterable
+from typing import Any
 
 from ._records import normalize_records
 from .artifact import Artifact, ArtifactKind
@@ -51,10 +52,10 @@ def _artifact_from(
     kind: ArtifactKind,
     produced_by: str,
     inputs: Iterable[Artifact] = (),
-    uri: Optional[str] = None,
-    record_count: Optional[int] = None,
-    metadata: Optional[dict[str, Any]] = None,
-    schema_hint: Optional[dict[str, Any]] = None,
+    uri: str | None = None,
+    record_count: int | None = None,
+    metadata: dict[str, Any] | None = None,
+    schema_hint: dict[str, Any] | None = None,
 ) -> Artifact:
     return Artifact(
         artifact_id=_new_id(kind.value),
@@ -84,12 +85,12 @@ def _stub_uri(kind: str, name: str) -> str:
 
 
 def chunk(
-    docs: Union[Artifact, str, list],
+    docs: Artifact | str | list,
     *,
     strategy: str = "sliding_token",
     target_tokens: int = 512,
     overlap: int = 64,
-    dry_run: Optional[bool] = None,
+    dry_run: bool | None = None,
     **kwargs: Any,
 ) -> Artifact:
     """Chunk text using one of the algorithms in ``coralbricks.context_prep.chunkers``.
@@ -165,10 +166,7 @@ def chunk(
     produced_lists: list[list[dict]] = []
     for rec in records:
         produced_lists.append(
-            [
-                {**c.to_dict(), "doc_id": rec["id"]}
-                for c in chunker.chunk(rec["text"])
-            ]
+            [{**c.to_dict(), "doc_id": rec["id"]} for c in chunker.chunk(rec["text"])]
         )
 
     record_count = sum(len(p) for p in produced_lists)
@@ -199,16 +197,16 @@ def chunk(
 
 
 def embed(
-    chunks: Union[Artifact, str, list],
+    chunks: Artifact | str | list,
     *,
     model: str = "coral_embed",
     dimension: int = 768,
     batch_size: int = 128,
     input_type: str = "document",
-    output_dir: Optional[str] = None,
-    embedder_kwargs: Optional[dict[str, Any]] = None,
-    dry_run: Optional[bool] = None,
-    embedder: Optional[Any] = None,
+    output_dir: str | None = None,
+    embedder_kwargs: dict[str, Any] | None = None,
+    dry_run: bool | None = None,
+    embedder: Any | None = None,
 ) -> Artifact:
     """Embed text using the multi-provider embedder factory.
 
@@ -307,7 +305,7 @@ def embed(
     resolved_model = embedder.get_model_name()
     resolved_dim = embedder.get_dimension()
 
-    parquet_path: Optional[str] = None
+    parquet_path: str | None = None
     if output_dir is not None:
         from .embedders.parquet import write_vectors_parquet
 
@@ -348,10 +346,10 @@ def embed(
 
 
 def clean(
-    docs: Union[Artifact, str, list],
+    docs: Artifact | str | list,
     *,
     drop_empty: bool = True,
-    dry_run: Optional[bool] = None,
+    dry_run: bool | None = None,
     **kwargs: Any,
 ) -> Artifact:
     """Run trafilatura over each document's HTML body.
@@ -422,10 +420,10 @@ def clean(
 
 
 def enrich(
-    docs: Union[Artifact, str, list],
+    docs: Artifact | str | list,
     *,
-    extractors: Optional[list] = None,
-    dry_run: Optional[bool] = None,
+    extractors: list | None = None,
+    dry_run: bool | None = None,
     **kwargs: Any,
 ) -> Artifact:
     """Extract structured signals (tickers, dates, urls, NER, ...) per document.
@@ -498,14 +496,14 @@ def enrich(
 
 
 def join(
-    left: Union[Artifact, list],
-    right: Union[Artifact, list],
+    left: Artifact | list,
+    right: Artifact | list,
     *,
-    on: Union[str, list[str]],
+    on: str | list[str],
     how: str = "left",
-    right_on: Union[str, list[str], None] = None,
+    right_on: str | list[str] | None = None,
     suffixes: tuple[str, str] = ("_left", "_right"),
-    dry_run: Optional[bool] = None,
+    dry_run: bool | None = None,
     **kwargs: Any,
 ) -> Artifact:
     """Hash-join two sets of records on a shared key.
@@ -519,9 +517,12 @@ def join(
     each side.
     """
     if dry_run is None:
-        dry_run = isinstance(left, Artifact) and isinstance(right, Artifact) and (
-            "documents" not in (left.metadata or {})
-            and "records" not in (left.metadata or {})
+        dry_run = (
+            isinstance(left, Artifact)
+            and isinstance(right, Artifact)
+            and (
+                "documents" not in (left.metadata or {}) and "records" not in (left.metadata or {})
+            )
         )
 
     if dry_run:
@@ -535,7 +536,7 @@ def join(
 
     from .joiners import join_records
 
-    def _materialise(side: Union[Artifact, list]) -> list[Any]:
+    def _materialise(side: Artifact | list) -> list[Any]:
         if isinstance(side, Artifact):
             meta = side.metadata or {}
             return list(meta.get("documents") or meta.get("records") or [])
@@ -570,12 +571,12 @@ def join(
 
 
 def hydrate(
-    enriched: Union[Artifact, list],
+    enriched: Artifact | list,
     *,
     graph: str,
-    extractors: Optional[list] = None,
-    output_dir: Optional[str] = None,
-    dry_run: Optional[bool] = None,
+    extractors: list | None = None,
+    output_dir: str | None = None,
+    dry_run: bool | None = None,
     **kwargs: Any,
 ) -> Artifact:
     """Aggregate triples extracted from documents into a nodes+edges graph.
@@ -593,9 +594,7 @@ def hydrate(
     handing them to your downstream graph store.
     """
     if dry_run is None:
-        dry_run = isinstance(enriched, Artifact) and "documents" not in (
-            enriched.metadata or {}
-        )
+        dry_run = isinstance(enriched, Artifact) and "documents" not in (enriched.metadata or {})
 
     if dry_run:
         return _artifact_from(
@@ -636,23 +635,18 @@ def hydrate(
         sample_meta = records[0]["metadata"] if records else {}
         ext_buckets = list((sample_meta or {}).get("extractions", {}).keys())
         sources = {b: b.title() for b in ext_buckets} or {"tickers": "Ticker"}
-        triple_extractors: list[BaseTripleExtractor] = [
-            CooccurrenceExtractor(sources)
-        ]
+        triple_extractors: list[BaseTripleExtractor] = [CooccurrenceExtractor(sources)]
     else:
         triple_extractors = list(extractors)
 
-    graph_payload = hydrate_graph(
-        records, triple_extractors, output_dir=output_dir
-    )
+    graph_payload = hydrate_graph(records, triple_extractors, output_dir=output_dir)
 
     return _artifact_from(
         kind=ArtifactKind.GRAPH,
         produced_by="hydrate",
         inputs=upstream_inputs,
         uri=output_dir or _stub_uri("graph", graph),
-        record_count=graph_payload.get("node_count", 0)
-        + graph_payload.get("edge_count", 0),
+        record_count=graph_payload.get("node_count", 0) + graph_payload.get("edge_count", 0),
         metadata={
             "graph": graph,
             "node_count": graph_payload.get("node_count", 0),

@@ -7,10 +7,8 @@ strategy for embedding-based RAG.
 
 from __future__ import annotations
 
-from typing import List
-
-from coralbricks.context_prep.chunkers.base import BaseChunker, Chunk
 from coralbricks.context_prep.chunkers._tokens import get_tokenizer
+from coralbricks.context_prep.chunkers.base import BaseChunker, Chunk
 
 
 class SlidingTokenChunker(BaseChunker):
@@ -34,7 +32,7 @@ class SlidingTokenChunker(BaseChunker):
         self.encoding = encoding
         self._tok = get_tokenizer(encoding)
 
-    def chunk(self, text: str) -> List[Chunk]:
+    def chunk(self, text: str) -> list[Chunk]:
         if not text:
             return []
 
@@ -45,7 +43,7 @@ class SlidingTokenChunker(BaseChunker):
         n_tokens = len(ids)
         n_chars = len(text)
         step = self.target_tokens - self.overlap
-        chunks: List[Chunk] = []
+        chunks: list[Chunk] = []
 
         i = 0
         while i < n_tokens:

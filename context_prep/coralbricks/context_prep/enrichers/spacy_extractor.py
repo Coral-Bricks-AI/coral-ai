@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Iterable
+from collections.abc import Iterable
+from typing import Any
 
 from .base import BaseExtractor, ExtractionResult
 
@@ -29,7 +30,7 @@ class SpacyEntityExtractor(BaseExtractor):
     ):
         self._nlp = nlp
         self._model = model
-        self._labels = {l.upper() for l in labels} if labels else None
+        self._labels = {lbl.upper() for lbl in labels} if labels else None
 
     def _ensure_nlp(self) -> Any:
         if self._nlp is not None:

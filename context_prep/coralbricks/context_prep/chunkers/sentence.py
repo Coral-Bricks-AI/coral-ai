@@ -8,10 +8,9 @@ guards, then aggregates consecutive sentences up to ``target_tokens``
 from __future__ import annotations
 
 import re
-from typing import List, Optional
 
-from coralbricks.context_prep.chunkers.base import BaseChunker, Chunk
 from coralbricks.context_prep.chunkers._tokens import count_tokens
+from coralbricks.context_prep.chunkers.base import BaseChunker, Chunk
 
 # Sentence boundaries: end-punctuation followed by whitespace + capital,
 # guarded against common abbreviations.
@@ -36,9 +35,9 @@ _ABBREVIATIONS = {
 _SENT_SPLIT = re.compile(r"(?<=[.!?])\s+(?=[A-Z0-9\"'])")
 
 
-def _split_sentences(text: str) -> List[tuple[int, int, str]]:
+def _split_sentences(text: str) -> list[tuple[int, int, str]]:
     """Return list of ``(start, end, text)`` sentence spans."""
-    spans: List[tuple[int, int, str]] = []
+    spans: list[tuple[int, int, str]] = []
     last = 0
     for match in _SENT_SPLIT.finditer(text):
         end = match.start()
@@ -67,8 +66,8 @@ class SentenceChunker(BaseChunker):
     def __init__(
         self,
         *,
-        target_tokens: Optional[int] = 256,
-        target_chars: Optional[int] = None,
+        target_tokens: int | None = 256,
+        target_chars: int | None = None,
         encoding: str = "cl100k_base",
     ):
         if target_tokens is None and target_chars is None:
@@ -89,7 +88,7 @@ class SentenceChunker(BaseChunker):
     def _budget(self) -> int:
         return self.target_tokens if self.target_tokens is not None else int(self.target_chars or 0)
 
-    def chunk(self, text: str) -> List[Chunk]:
+    def chunk(self, text: str) -> list[Chunk]:
         if not text:
             return []
 
@@ -98,8 +97,8 @@ class SentenceChunker(BaseChunker):
             return []
 
         budget = self._budget()
-        chunks: List[Chunk] = []
-        buf: List[tuple[int, int, str]] = []
+        chunks: list[Chunk] = []
+        buf: list[tuple[int, int, str]] = []
         buf_size = 0
 
         def _flush() -> None:

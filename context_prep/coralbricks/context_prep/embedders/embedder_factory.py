@@ -11,14 +11,16 @@ Multi-provider entry point for the prep DSL. Supports:
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
 
 from coralbricks.context_prep.embedders.base import BaseEmbedder
 from coralbricks.context_prep.embedders.coral_embedder import CoralEmbedder
 from coralbricks.context_prep.embedders.coral_gateway_embedder import CoralGatewayEmbedder
 from coralbricks.context_prep.embedders.deepinfra_embedder import (
-    DeepInfraEmbedder,
     MODELS as DI_MODELS,
+)
+from coralbricks.context_prep.embedders.deepinfra_embedder import (
+    DeepInfraEmbedder,
 )
 from coralbricks.context_prep.embedders.openai_embedder import OpenAIEmbedder
 
@@ -59,16 +61,16 @@ def create_embedder(
     model_id: str,
     dimension: int,
     input_type: str = "product",
-    coral_endpoint: Optional[str] = None,
-    coral_api_key: Optional[str] = None,
-    openai_api_key: Optional[str] = None,
+    coral_endpoint: str | None = None,
+    coral_api_key: str | None = None,
+    openai_api_key: str | None = None,
     aws_region: str = "us-east-1",
     batch_size: int = 32,
-    coral_request_timeout: Optional[float] = None,
-    device: Optional[str] = None,
+    coral_request_timeout: float | None = None,
+    device: str | None = None,
     use_fp16: bool = False,
     tokenize_processes: int = 0,
-    max_seq_length: Optional[int] = None,
+    max_seq_length: int | None = None,
     **kwargs: Any,
 ) -> BaseEmbedder:
     """Create an embedder for ``model_id``.
@@ -95,8 +97,7 @@ def create_embedder(
         st_model_name = model_id[3:]
         if kwargs:
             raise TypeError(
-                "create_embedder: unexpected kwargs for sentence-transformer: "
-                f"{sorted(kwargs)}"
+                f"create_embedder: unexpected kwargs for sentence-transformer: {sorted(kwargs)}"
             )
         st = _load_st()
         return st.SentenceTransformerEmbedder(
@@ -162,20 +163,14 @@ def list_supported_models() -> dict:
     br = _load_bedrock()
     return {
         "coral": {"coral_embed": "Variable (from inference server)"},
-        "openai": {
-            model: f"{dim} dims"
-            for model, dim in OpenAIEmbedder.SUPPORTED_MODELS.items()
-        },
+        "openai": {model: f"{dim} dims" for model, dim in OpenAIEmbedder.SUPPORTED_MODELS.items()},
         "bedrock": {
-            model: f"{dim} dims"
-            for model, dim in br.BedrockEmbedder.SUPPORTED_MODELS.items()
+            model: f"{dim} dims" for model, dim in br.BedrockEmbedder.SUPPORTED_MODELS.items()
         },
         "sentence_transformers": {
-            f"st:{name}": f"{info['dimension']} dims"
-            for name, info in st.MODELS.items()
+            f"st:{name}": f"{info['dimension']} dims" for name, info in st.MODELS.items()
         },
         "deepinfra": {
-            f"di:{name}": f"{info['dimension']} dims"
-            for name, info in DI_MODELS.items()
+            f"di:{name}": f"{info['dimension']} dims" for name, info in DI_MODELS.items()
         },
     }

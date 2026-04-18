@@ -20,8 +20,7 @@ LONG = (
     "The quick brown fox jumps over the lazy dog. " * 50
     + "Coral Bricks unifies prep + serve in one platform. "
     + "Mr. Smith met Dr. Jones at 9 a.m.\n\n"
-    + "Section 2: indices.\nThis paragraph explains how indices warm and cool. "
-    * 10
+    + "Section 2: indices.\nThis paragraph explains how indices warm and cool. " * 10
 )
 
 
@@ -97,8 +96,10 @@ def test_sentence_chunker_handles_abbreviations():
     ch = SentenceChunker(target_chars=200, target_tokens=None)
     chunks = ch.chunk(text)
     # Should NOT split on "Mr.", "Dr.", "a.m.".
-    assert all("Mr. Smith arrived" not in c.text or "Dr. Jones replied" in c.text
-               for c in chunks) or len(chunks) <= 4
+    assert (
+        all("Mr. Smith arrived" not in c.text or "Dr. Jones replied" in c.text for c in chunks)
+        or len(chunks) <= 4
+    )
 
 
 def test_chunk_text_dispatches_by_strategy():

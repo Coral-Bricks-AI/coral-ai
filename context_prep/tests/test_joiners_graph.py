@@ -70,9 +70,7 @@ def test_hydrate_graph_dedupes_nodes_and_accumulates_weight() -> None:
 
 def test_entity_cooccurrence_inline_extractor() -> None:
     docs = [{"id": "d1", "text": "$AAPL and $MSFT both popped"}]
-    graph = hydrate_graph(
-        docs, [EntityCooccurrenceExtractor([TickerExtractor()])]
-    )
+    graph = hydrate_graph(docs, [EntityCooccurrenceExtractor([TickerExtractor()])])
     assert graph["node_count"] >= 3
     assert any(e["relation"] == "co_occurs_with" for e in graph["edges"])
 
@@ -84,9 +82,7 @@ def test_entity_cooccurrence_inline_extractor() -> None:
 
 def _hydrate_shard(records):
     enriched = enrich_documents(records, [TickerExtractor()])
-    return hydrate_graph(
-        enriched, [CooccurrenceExtractor({"tickers": "Ticker"})]
-    )
+    return hydrate_graph(enriched, [CooccurrenceExtractor({"tickers": "Ticker"})])
 
 
 def test_merge_graphs_handles_empty() -> None:
@@ -108,8 +104,7 @@ def test_merge_graphs_sums_edge_weights() -> None:
     b = _hydrate_shard([{"id": "d1", "text": "$AAPL"}])
     merged = merge_graphs(a, b)
     aapl_edges = [
-        e for e in merged["edges"]
-        if e["dst"] == "Ticker:AAPL" and e["relation"] == "mentions"
+        e for e in merged["edges"] if e["dst"] == "Ticker:AAPL" and e["relation"] == "mentions"
     ]
     assert len(aapl_edges) == 1
     assert aapl_edges[0]["weight"] == 2.0

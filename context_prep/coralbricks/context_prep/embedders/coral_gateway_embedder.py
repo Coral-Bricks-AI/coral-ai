@@ -7,7 +7,6 @@ the OpenAI-compatible ``/v1/embeddings`` endpoint with API-key auth.
 from __future__ import annotations
 
 import os
-from typing import List
 
 from coralbricks.context_prep.embedders.base import BaseEmbedder
 
@@ -47,16 +46,12 @@ class CoralGatewayEmbedder(BaseEmbedder):
         self.batch_size = batch_size
 
         if input_type not in ("query", "product"):
-            raise ValueError(
-                f"Invalid input_type '{input_type}'. Must be 'query' or 'product'."
-            )
+            raise ValueError(f"Invalid input_type '{input_type}'. Must be 'query' or 'product'.")
 
         self.input_type = input_type
         self.task = input_type
 
-    def embed_texts(
-        self, texts: List[str], max_retries: int = 3
-    ) -> tuple[List[List[float]], dict]:
+    def embed_texts(self, texts: list[str], max_retries: int = 3) -> tuple[list[list[float]], dict]:
         import time
 
         import requests
@@ -64,7 +59,7 @@ class CoralGatewayEmbedder(BaseEmbedder):
         if not texts:
             return [], {"prompt_tokens": 0, "total_tokens": 0}
 
-        embeddings: List[List[float]] = []
+        embeddings: list[list[float]] = []
         total_tokens = 0
 
         for text in texts:
@@ -99,7 +94,7 @@ class CoralGatewayEmbedder(BaseEmbedder):
 
                 except Exception as exc:
                     if attempt < max_retries - 1:
-                        wait_time = 2 ** attempt
+                        wait_time = 2**attempt
                         print(
                             f"Coral Gateway API error (attempt {attempt + 1}/{max_retries}): {exc}; "
                             f"retrying in {wait_time}s"

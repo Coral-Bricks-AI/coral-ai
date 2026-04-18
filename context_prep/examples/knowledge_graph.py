@@ -32,9 +32,7 @@ def main() -> None:
     print()
     print("Top 5 edges:")
     for e in g.metadata["edges"][:5]:
-        print(
-            f"  - {e['src']} --[{e['relation']} w={e['weight']}]--> {e['dst']}"
-        )
+        print(f"  - {e['src']} --[{e['relation']} w={e['weight']}]--> {e['dst']}")
 
 
 if __name__ == "__main__":

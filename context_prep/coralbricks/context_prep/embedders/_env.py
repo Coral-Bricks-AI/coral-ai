@@ -8,16 +8,15 @@ look in a few candidate locations so existing user setups keep working.
 from __future__ import annotations
 
 import os
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Iterable
-
 
 _CANDIDATE_REL_PATHS: tuple[str, ...] = (
     # New SDK location ($CWD/.env or platform/.env)
     ".env",
     # Legacy embedder home
     "../../../../embed/.env",  # coralbricks/context_prep/embedders -> www/ml/embed
-    "../../embed/.env",         # repo-root anchored fallback
+    "../../embed/.env",  # repo-root anchored fallback
 )
 
 

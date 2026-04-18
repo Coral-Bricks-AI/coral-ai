@@ -25,9 +25,7 @@ from coralbricks.context_prep.graph import (
 
 def hydrate_shard(records: list[dict[str, Any]]) -> dict[str, Any]:
     enriched = enrich_documents(records, [TickerExtractor()])
-    return hydrate_graph(
-        enriched, [CooccurrenceExtractor({"tickers": "Ticker"})]
-    )
+    return hydrate_graph(enriched, [CooccurrenceExtractor({"tickers": "Ticker"})])
 
 
 SHARDS = [
@@ -51,14 +49,10 @@ def main() -> None:
         print(f"  shard {i}: {p['node_count']} nodes / {p['edge_count']} edges")
 
     full = merge_graphs(*partials)
-    print(
-        f"\nmerged: {full['node_count']} nodes / {full['edge_count']} edges"
-    )
+    print(f"\nmerged: {full['node_count']} nodes / {full['edge_count']} edges")
 
     aapl_mentions = [
-        e
-        for e in full["edges"]
-        if e["dst"] == "Ticker:AAPL" and e["relation"] == "mentions"
+        e for e in full["edges"] if e["dst"] == "Ticker:AAPL" and e["relation"] == "mentions"
     ]
     print(f"AAPL mention edges (deduped): {len(aapl_mentions)}")
     print(

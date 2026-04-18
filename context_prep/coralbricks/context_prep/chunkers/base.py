@@ -10,7 +10,6 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import List, Optional
 
 
 @dataclass
@@ -30,7 +29,7 @@ class Chunk:
     start: int
     end: int
     index: int
-    token_count: Optional[int] = None
+    token_count: int | None = None
     metadata: dict = field(default_factory=dict)
 
     def to_dict(self) -> dict:
@@ -50,9 +49,9 @@ class BaseChunker(ABC):
     name: str = "base"
 
     @abstractmethod
-    def chunk(self, text: str) -> List[Chunk]:
+    def chunk(self, text: str) -> list[Chunk]:
         """Split ``text`` into an ordered list of ``Chunk``s."""
 
-    def chunk_many(self, texts: List[str]) -> List[List[Chunk]]:
+    def chunk_many(self, texts: list[str]) -> list[list[Chunk]]:
         """Convenience: chunk a batch of texts independently."""
         return [self.chunk(t) for t in texts]

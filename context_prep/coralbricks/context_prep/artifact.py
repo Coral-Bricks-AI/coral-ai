@@ -14,17 +14,17 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 
 class ArtifactKind(str, Enum):
-    DOCS = "docs"          # raw normalized records (input shape)
-    CHUNKS = "chunks"      # chunk() output: chunked records
-    VECTORS = "vectors"    # embed() output: float vectors
+    DOCS = "docs"  # raw normalized records (input shape)
+    CHUNKS = "chunks"  # chunk() output: chunked records
+    VECTORS = "vectors"  # embed() output: float vectors
     ENRICHED = "enriched"  # enrich() output: chunks + extracted facts
-    GRAPH = "graph"        # hydrate() output: nodes/edges
-    CLEANED = "cleaned"    # clean() output: cleaned records
-    JOINED = "joined"      # join() output: joined records
+    GRAPH = "graph"  # hydrate() output: nodes/edges
+    CLEANED = "cleaned"  # clean() output: cleaned records
+    JOINED = "joined"  # join() output: joined records
 
 
 @dataclass(frozen=True)
@@ -40,8 +40,8 @@ class Artifact:
 
     artifact_id: str
     kind: ArtifactKind
-    uri: Optional[str] = None
-    record_count: Optional[int] = None
+    uri: str | None = None
+    record_count: int | None = None
     schema_hint: dict[str, Any] = field(default_factory=dict)
     produced_by: str = ""
     inputs: tuple[str, ...] = ()

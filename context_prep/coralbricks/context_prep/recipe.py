@@ -25,8 +25,9 @@ Usage::
 from __future__ import annotations
 
 import logging
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any, Callable, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +40,7 @@ class VerbCall:
     fn: Callable[..., Any]
     args: tuple[Any, ...]
     kwargs: dict[str, Any]
-    label: Optional[str] = None  # human-readable id for plan output
+    label: str | None = None  # human-readable id for plan output
 
     def describe(self) -> str:
         # Shorten artifact reprs in the plan output.
@@ -61,7 +62,7 @@ class VerbCall:
 @dataclass
 class Recipe:
     name: str
-    project_id: Optional[int] = None
+    project_id: int | None = None
     calls: list[VerbCall] = field(default_factory=list)
     _results: list[Any] = field(default_factory=list, init=False, repr=False)
 
@@ -69,9 +70,9 @@ class Recipe:
         self,
         verb: Callable[..., Any],
         *args: Any,
-        label: Optional[str] = None,
+        label: str | None = None,
         **kwargs: Any,
-    ) -> "VerbCall":
+    ) -> VerbCall:
         """Schedule a verb call. Returns the :class:`VerbCall` so callers
         can reference it before :meth:`run` is invoked.
         """
@@ -87,7 +88,7 @@ class Recipe:
 
     def plan(self) -> list[str]:
         """Return a human-readable plan of the recipe."""
-        return [f"  {i+1:>2}. {c.describe()}" for i, c in enumerate(self.calls)]
+        return [f"  {i + 1:>2}. {c.describe()}" for i, c in enumerate(self.calls)]
 
     def print_plan(self) -> None:
         print(f"Recipe: {self.name}")

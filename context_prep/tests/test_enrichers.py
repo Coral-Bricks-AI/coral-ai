@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 from coralbricks.context_prep.enrichers import (
+    REGISTRY,
     DateExtractor,
     EmailExtractor,
     MoneyExtractor,
-    REGISTRY,
     TickerExtractor,
     URLExtractor,
     enrich_documents,

@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
-from typing import Any, Iterable, Sequence, Union
+from collections.abc import Iterable, Sequence
+from typing import Any
 
 from .._records import normalize_records
 from .base import BaseExtractor, ExtractionResult
 
 
-def _resolve_extractor(spec: Union[str, BaseExtractor, type]) -> BaseExtractor:
+def _resolve_extractor(spec: str | BaseExtractor | type) -> BaseExtractor:
     if isinstance(spec, BaseExtractor):
         return spec
     if isinstance(spec, type) and issubclass(spec, BaseExtractor):
@@ -17,15 +18,13 @@ def _resolve_extractor(spec: Union[str, BaseExtractor, type]) -> BaseExtractor:
         from . import REGISTRY
 
         if spec not in REGISTRY:
-            raise ValueError(
-                f"unknown extractor: {spec!r}; known: {sorted(REGISTRY)}"
-            )
+            raise ValueError(f"unknown extractor: {spec!r}; known: {sorted(REGISTRY)}")
         return REGISTRY[spec]()
     raise TypeError(f"cannot resolve extractor from {spec!r}")
 
 
 def run_extractors(
-    text: str, extractors: Sequence[Union[str, BaseExtractor, type]]
+    text: str, extractors: Sequence[str | BaseExtractor | type]
 ) -> dict[str, list[ExtractionResult]]:
     """Apply each extractor to ``text``; return a {name: results} mapping."""
     out: dict[str, list[ExtractionResult]] = {}
@@ -36,8 +35,8 @@ def run_extractors(
 
 
 def enrich_documents(
-    docs: Union[str, dict, Iterable[Any]],
-    extractors: Sequence[Union[str, BaseExtractor, type]],
+    docs: str | dict | Iterable[Any],
+    extractors: Sequence[str | BaseExtractor | type],
 ) -> list[dict[str, Any]]:
     """Add ``metadata["extractions"][name] = [...]`` to each record.
 
@@ -55,8 +54,6 @@ def enrich_documents(
     for rec in records:
         bucket = rec["metadata"].setdefault("extractions", {})
         for extractor in resolved:
-            bucket[extractor.name] = [
-                r.to_dict() for r in extractor.extract(rec["text"])
-            ]
+            bucket[extractor.name] = [r.to_dict() for r in extractor.extract(rec["text"])]
 
     return records

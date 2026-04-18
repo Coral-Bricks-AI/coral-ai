@@ -62,16 +62,10 @@ def main() -> None:
         target_tokens=24,
         overlap=4,
     )
-    print(
-        f"chunks:  {chunks.record_count} chunks across "
-        f"{chunks.metadata['doc_count']} docs"
-    )
+    print(f"chunks:  {chunks.record_count} chunks across {chunks.metadata['doc_count']} docs")
 
     vectors = embed(chunks, embedder=_FakeEmbedder())
-    print(
-        f"vectors: {vectors.record_count} vectors of dim "
-        f"{vectors.metadata['dimension']}"
-    )
+    print(f"vectors: {vectors.record_count} vectors of dim {vectors.metadata['dimension']}")
 
     # In a real app, push (chunk, vector) pairs into your vector store:
     print("\nFirst chunk (truncated):")

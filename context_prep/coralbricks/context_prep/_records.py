@@ -24,7 +24,8 @@ verb does not need to repeat the same boilerplate.
 from __future__ import annotations
 
 import uuid
-from typing import Any, Iterable
+from collections.abc import Iterable
+from typing import Any
 
 
 def new_record_id(prefix: str = "rec") -> str:

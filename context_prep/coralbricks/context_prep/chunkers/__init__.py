@@ -26,7 +26,7 @@ whitespace tokenizer that keeps boundaries deterministic but makes
 
 from __future__ import annotations
 
-from typing import Any, List, Union
+from typing import Any
 
 from coralbricks.context_prep.chunkers._tokens import count_tokens, get_tokenizer
 from coralbricks.context_prep.chunkers.base import BaseChunker, Chunk
@@ -66,20 +66,17 @@ _STRATEGIES: dict[str, type[BaseChunker]] = {
 }
 
 
-def make_chunker(strategy: Union[str, BaseChunker], **kwargs: Any) -> BaseChunker:
+def make_chunker(strategy: str | BaseChunker, **kwargs: Any) -> BaseChunker:
     """Resolve ``strategy`` (string name or instance) into a ``BaseChunker``."""
     if isinstance(strategy, BaseChunker):
         if kwargs:
-            raise TypeError(
-                "kwargs not allowed when strategy is already a BaseChunker instance"
-            )
+            raise TypeError("kwargs not allowed when strategy is already a BaseChunker instance")
         return strategy
     try:
         cls = _STRATEGIES[strategy]
     except KeyError as exc:
         raise ValueError(
-            f"unknown chunking strategy {strategy!r}; "
-            f"choose one of {sorted(set(_STRATEGIES))}"
+            f"unknown chunking strategy {strategy!r}; choose one of {sorted(set(_STRATEGIES))}"
         ) from exc
     return cls(**kwargs)
 
@@ -87,9 +84,9 @@ def make_chunker(strategy: Union[str, BaseChunker], **kwargs: Any) -> BaseChunke
 def chunk_text(
     text: str,
     *,
-    strategy: Union[str, BaseChunker] = "sliding_token",
+    strategy: str | BaseChunker = "sliding_token",
     **kwargs: Any,
-) -> List[Chunk]:
+) -> list[Chunk]:
     """Chunk a single ``text`` according to ``strategy``.
 
     Examples::

@@ -8,14 +8,13 @@ location is preserved as a thin shim for back-compat.
 """
 
 from abc import ABC, abstractmethod
-from typing import List
 
 
 class BaseEmbedder(ABC):
     """Abstract base class for all embedders."""
 
     @abstractmethod
-    def embed_texts(self, texts: List[str]) -> List[List[float]]:
+    def embed_texts(self, texts: list[str]) -> list[list[float]]:
         """Embed a batch of texts.
 
         Args:

@@ -9,12 +9,12 @@ positions) but makes ``token_count`` an approximation.
 
 from __future__ import annotations
 
-from typing import List, Protocol
+from typing import Protocol
 
 
 class _Tokenizer(Protocol):
-    def encode(self, text: str) -> List[int]: ...
-    def decode(self, tokens: List[int]) -> str: ...
+    def encode(self, text: str) -> list[int]: ...
+    def decode(self, tokens: list[int]) -> str: ...
 
 
 _DEFAULT_ENCODING = "cl100k_base"
@@ -53,10 +53,10 @@ class _WhitespaceTokenizer:
     but adequate for ``token_count`` estimation.
     """
 
-    def encode(self, text: str) -> List[int]:
+    def encode(self, text: str) -> list[int]:
         return list(range(len(text.split())))
 
-    def decode(self, tokens: List[int]) -> str:
+    def decode(self, tokens: list[int]) -> str:
         # Decoder is informational; chunker uses character offsets.
         return " ".join(["<tok>"] * len(tokens))
 

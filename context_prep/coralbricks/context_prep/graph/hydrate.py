@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable, Sequence
 from pathlib import Path
-from typing import Any, Iterable, Sequence, Union
+from typing import Any
 
 from .._records import normalize_records
 from .triples import (
@@ -39,10 +40,10 @@ def _aggregate(triples: Iterable[Triple]) -> tuple[list[Node], list[Edge]]:
 
 
 def hydrate_graph(
-    docs: Union[dict, Iterable[Any]],
+    docs: dict | Iterable[Any],
     extractors: Sequence[BaseTripleExtractor],
     *,
-    output_dir: Union[str, Path, None] = None,
+    output_dir: str | Path | None = None,
 ) -> dict[str, Any]:
     """Run triple extractors over records and return a {nodes, edges} graph.
 
@@ -59,10 +60,7 @@ def hydrate_graph(
         ``{"nodes": [...], "edges": [...], "node_count": N, "edge_count": M}``
         where each node / edge is a plain dict.
     """
-    if isinstance(docs, dict):
-        records = normalize_records([docs])
-    else:
-        records = normalize_records(list(docs))
+    records = normalize_records([docs]) if isinstance(docs, dict) else normalize_records(list(docs))
 
     triples: list[Triple] = []
     for rec in records:
@@ -72,8 +70,7 @@ def hydrate_graph(
     nodes, edges = _aggregate(triples)
     result: dict[str, Any] = {
         "nodes": [
-            {"id": n.id, "label": n.label, "value": n.value, "metadata": n.metadata}
-            for n in nodes
+            {"id": n.id, "label": n.label, "value": n.value, "metadata": n.metadata} for n in nodes
         ],
         "edges": [
             {
@@ -168,7 +165,7 @@ def merge_graphs(*graphs: dict) -> dict:
     }
 
 
-def write_graph_parquet(graph: dict, output_dir: Union[str, Path]) -> dict[str, str]:
+def write_graph_parquet(graph: dict, output_dir: str | Path) -> dict[str, str]:
     """Persist nodes + edges to ``<output_dir>/nodes.parquet`` and ``edges.parquet``.
 
     ``output_dir`` is a **local** filesystem path. To land in S3 / GCS,
@@ -191,10 +188,7 @@ def write_graph_parquet(graph: dict, output_dir: Union[str, Path]) -> dict[str, 
     edges_path = out_dir / "edges.parquet"
 
     nodes_table = pa.Table.from_pylist(
-        [
-            {"id": n["id"], "label": n["label"], "value": n["value"]}
-            for n in graph.get("nodes", [])
-        ]
+        [{"id": n["id"], "label": n["label"], "value": n["value"]} for n in graph.get("nodes", [])]
     )
     edges_table = pa.Table.from_pylist(
         [

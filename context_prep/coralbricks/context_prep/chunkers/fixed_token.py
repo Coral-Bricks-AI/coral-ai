@@ -7,10 +7,8 @@ Splits a text into non-overlapping windows of approximately
 
 from __future__ import annotations
 
-from typing import List
-
-from coralbricks.context_prep.chunkers.base import BaseChunker, Chunk
 from coralbricks.context_prep.chunkers._tokens import get_tokenizer
+from coralbricks.context_prep.chunkers.base import BaseChunker, Chunk
 
 
 class FixedTokenChunker(BaseChunker):
@@ -23,7 +21,7 @@ class FixedTokenChunker(BaseChunker):
         self.encoding = encoding
         self._tok = get_tokenizer(encoding)
 
-    def chunk(self, text: str) -> List[Chunk]:
+    def chunk(self, text: str) -> list[Chunk]:
         if not text:
             return []
 
@@ -37,7 +35,7 @@ class FixedTokenChunker(BaseChunker):
         # approximation but is monotonic and covers the whole text.
         n_tokens = len(ids)
         n_chars = len(text)
-        chunks: List[Chunk] = []
+        chunks: list[Chunk] = []
 
         for i in range(0, n_tokens, self.target_tokens):
             tok_start = i

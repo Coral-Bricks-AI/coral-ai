@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from collections.abc import Iterable
 from dataclasses import dataclass, field
-from typing import Any, Iterable
+from typing import Any
 
 
 @dataclass
@@ -32,8 +33,7 @@ class BaseExtractor(ABC):
     name: str = "base"
 
     @abstractmethod
-    def extract(self, text: str) -> list[ExtractionResult]:
-        ...
+    def extract(self, text: str) -> list[ExtractionResult]: ...
 
     def extract_many(self, texts: Iterable[str]) -> list[list[ExtractionResult]]:
         return [self.extract(t) for t in texts]

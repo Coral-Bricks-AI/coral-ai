@@ -113,6 +113,17 @@ ignore = ["E501"]  # line length handled by formatter
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["B", "N802", "N806"]
+# Public exception name; renaming is a breaking API change.
+"coralbricks/context_prep/cleaners.py" = ["N818"]
+# Legacy embedder file: torch convention for `import torch.nn.functional as F`,
+# guarded top-level imports, and pre-existing style choices we don't want to
+# churn for the 0.1.0 cut.
+"coralbricks/context_prep/embedders/sentence_transformer_embedder.py" = [
+    "E402",
+    "N812",
+    "SIM105",
+    "UP022",
+]
 
 [tool.mypy]
 python_version = "3.10"

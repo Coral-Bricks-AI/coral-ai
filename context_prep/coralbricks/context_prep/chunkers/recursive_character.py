@@ -8,7 +8,7 @@ This is a clean re-implementation of the LangChain
 
 from __future__ import annotations
 
-from typing import List, Optional, Sequence
+from collections.abc import Sequence
 
 from coralbricks.context_prep.chunkers.base import BaseChunker, Chunk
 
@@ -33,7 +33,7 @@ class RecursiveCharacterChunker(BaseChunker):
         *,
         chunk_size: int = 1000,
         chunk_overlap: int = 100,
-        separators: Optional[Sequence[str]] = None,
+        separators: Sequence[str] | None = None,
     ):
         if chunk_size <= 0:
             raise ValueError("chunk_size must be > 0")
@@ -45,13 +45,13 @@ class RecursiveCharacterChunker(BaseChunker):
         self.chunk_overlap = int(chunk_overlap)
         self.separators: tuple[str, ...] = tuple(separators or DEFAULT_SEPARATORS)
 
-    def chunk(self, text: str) -> List[Chunk]:
+    def chunk(self, text: str) -> list[Chunk]:
         if not text:
             return []
         pieces = self._split_recursive(text, list(self.separators))
         merged = self._merge_with_overlap(pieces)
 
-        chunks: List[Chunk] = []
+        chunks: list[Chunk] = []
         cursor = 0
         for piece in merged:
             start = text.find(piece, cursor)
@@ -73,12 +73,12 @@ class RecursiveCharacterChunker(BaseChunker):
             cursor = max(0, end - self.chunk_overlap)
         return chunks
 
-    def _split_recursive(self, text: str, separators: List[str]) -> List[str]:
+    def _split_recursive(self, text: str, separators: list[str]) -> list[str]:
         if not text:
             return []
         # Pick the first separator that actually appears.
         sep = ""
-        rest: List[str] = []
+        rest: list[str] = []
         for idx, candidate in enumerate(separators):
             if candidate == "":
                 sep = ""
@@ -94,13 +94,10 @@ class RecursiveCharacterChunker(BaseChunker):
 
         if sep == "":
             # Hard slice into chunk-size windows.
-            return [
-                text[i : i + self.chunk_size]
-                for i in range(0, len(text), self.chunk_size)
-            ]
+            return [text[i : i + self.chunk_size] for i in range(0, len(text), self.chunk_size)]
 
         splits = text.split(sep)
-        good: List[str] = []
+        good: list[str] = []
         for piece in splits:
             if not piece:
                 continue
@@ -112,8 +109,8 @@ class RecursiveCharacterChunker(BaseChunker):
                 good.extend(self._split_recursive(piece_with_sep, rest or [""]))
         return good
 
-    def _merge_with_overlap(self, pieces: List[str]) -> List[str]:
-        merged: List[str] = []
+    def _merge_with_overlap(self, pieces: list[str]) -> list[str]:
+        merged: list[str] = []
         current = ""
         for piece in pieces:
             if not piece:

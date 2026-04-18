@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import os
 import time
-from typing import List
 
 from coralbricks.context_prep.embedders._env import load_embed_dotenv
 from coralbricks.context_prep.embedders.base import BaseEmbedder
@@ -62,9 +61,7 @@ class OpenAIEmbedder(BaseEmbedder):
 
         self.client = OpenAI(api_key=api_key)
 
-    def embed_texts(
-        self, texts: List[str], max_retries: int = 3
-    ) -> tuple[List[List[float]], dict]:
+    def embed_texts(self, texts: list[str], max_retries: int = 3) -> tuple[list[list[float]], dict]:
         """Embed a batch of texts using the OpenAI API.
 
         Returns:
@@ -109,7 +106,7 @@ class OpenAIEmbedder(BaseEmbedder):
 
             except Exception as exc:
                 if attempt < max_retries - 1:
-                    wait_time = 2 ** attempt
+                    wait_time = 2**attempt
                     print(
                         f"OpenAI API error (attempt {attempt + 1}/{max_retries}): {exc}; "
                         f"retrying in {wait_time}s"

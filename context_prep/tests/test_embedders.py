@@ -159,10 +159,6 @@ def test_write_vectors_parquet_validates_lengths(tmp_path):
     from coralbricks.context_prep.embedders import write_vectors_parquet
 
     with pytest.raises(ValueError):
-        write_vectors_parquet(
-            ["a", "b"], [[0.1, 0.2, 0.3]], tmp_path, model="fake", dimension=3
-        )
+        write_vectors_parquet(["a", "b"], [[0.1, 0.2, 0.3]], tmp_path, model="fake", dimension=3)
     with pytest.raises(ValueError):
-        write_vectors_parquet(
-            ["a"], [[0.1, 0.2]], tmp_path, model="fake", dimension=3
-        )
+        write_vectors_parquet(["a"], [[0.1, 0.2]], tmp_path, model="fake", dimension=3)

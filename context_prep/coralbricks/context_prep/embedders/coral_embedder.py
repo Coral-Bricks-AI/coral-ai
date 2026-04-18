@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import logging
 import os
-from typing import Any, List
+from typing import Any
 
 from coralbricks.context_prep.embedders._env import load_embed_dotenv
 from coralbricks.context_prep.embedders.base import BaseEmbedder
@@ -103,10 +103,10 @@ class CoralEmbedder(BaseEmbedder):
 
     def embed_texts(
         self,
-        texts: List[str],
+        texts: list[str],
         max_retries: int = 3,
         **_: Any,
-    ) -> tuple[List[List[float]], dict]:
+    ) -> tuple[list[list[float]], dict]:
         if not texts:
             return [], {"prompt_tokens": 0, "total_tokens": 0}
 
@@ -137,7 +137,7 @@ class CoralEmbedder(BaseEmbedder):
 
             except Exception as exc:
                 if attempt < max_retries - 1:
-                    wait_time = 2 ** attempt
+                    wait_time = 2**attempt
                     print(
                         f"Coral API error (attempt {attempt + 1}/{max_retries}): {exc}; "
                         f"retrying in {wait_time}s"

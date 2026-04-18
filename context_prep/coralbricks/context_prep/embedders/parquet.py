@@ -12,14 +12,15 @@ object-store URIs are planned for 0.2.0.
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Any, Sequence, Union
+from typing import Any
 
 
 def write_vectors_parquet(
     items: Sequence[Any],
     vectors: Sequence[Sequence[float]],
-    output_dir: Union[str, Path],
+    output_dir: str | Path,
     *,
     model: str,
     dimension: int,
@@ -56,9 +57,7 @@ def write_vectors_parquet(
             length differs from ``dimension``.
     """
     if len(items) != len(vectors):
-        raise ValueError(
-            f"items / vectors length mismatch: {len(items)} vs {len(vectors)}"
-        )
+        raise ValueError(f"items / vectors length mismatch: {len(items)} vs {len(vectors)}")
 
     try:
         import pyarrow as pa  # type: ignore
@@ -74,11 +73,9 @@ def write_vectors_parquet(
     path = out_dir / file_name
 
     rows: list[dict[str, Any]] = []
-    for it, vec in zip(items, vectors):
+    for it, vec in zip(items, vectors, strict=True):
         if len(vec) != dimension:
-            raise ValueError(
-                f"vector length {len(vec)} does not match dimension {dimension}"
-            )
+            raise ValueError(f"vector length {len(vec)} does not match dimension {dimension}")
         if isinstance(it, dict):
             rows.append(
                 {
@@ -118,10 +115,7 @@ def write_vectors_parquet(
             b"model": model.encode(),
             b"dimension": str(dimension).encode(),
             b"count": str(len(rows)).encode(),
-            **{
-                k.encode(): str(v).encode()
-                for k, v in (extra_metadata or {}).items()
-            },
+            **{k.encode(): str(v).encode() for k, v in (extra_metadata or {}).items()},
         },
     )
 

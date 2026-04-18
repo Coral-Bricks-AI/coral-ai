@@ -17,14 +17,13 @@ import os
 import subprocess
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import numpy as np
 
 _logger = logging.getLogger(__name__)
 
 from coralbricks.context_prep.embedders.base import BaseEmbedder
-
 
 MODELS = {
     "bge-m3": {
@@ -64,9 +63,9 @@ S3_BUCKET = "coralbricks-models"
 
 
 def _merge_tokenized_features(
-    parts: List[Dict[str, Any]],
+    parts: list[dict[str, Any]],
     pad_token_id: int,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Concatenate tokenizer outputs from parallel chunks along batch dim.
 
     Pads each chunk to the same sequence length (max over chunks).
@@ -77,9 +76,9 @@ def _merge_tokenized_features(
         return parts[0]
 
     max_len = max(int(p["input_ids"].shape[1]) for p in parts)
-    merged_ids: List[Any] = []
-    merged_mask: List[Any] = []
-    merged_tti: List[Any] = []
+    merged_ids: list[Any] = []
+    merged_mask: list[Any] = []
+    merged_tti: list[Any] = []
     has_tti = all("token_type_ids" in p for p in parts)
 
     for p in parts:
@@ -95,12 +94,10 @@ def _merge_tokenized_features(
         if has_tti:
             tti = p["token_type_ids"]
             if tti.shape[1] < max_len:
-                tti = torch.nn.functional.pad(
-                    tti, (0, max_len - int(tti.shape[1])), value=0
-                )
+                tti = torch.nn.functional.pad(tti, (0, max_len - int(tti.shape[1])), value=0)
             merged_tti.append(tti)
 
-    out: Dict[str, Any] = {
+    out: dict[str, Any] = {
         "input_ids": torch.cat(merged_ids, dim=0),
         "attention_mask": torch.cat(merged_mask, dim=0),
     }
@@ -124,12 +121,12 @@ class SentenceTransformerEmbedder(BaseEmbedder):
         self,
         model_name: str,
         input_type: str = "product",
-        device: Optional[str] = None,
+        device: str | None = None,
         batch_size: int = 64,
-        cache_dir: Optional[str] = None,
+        cache_dir: str | None = None,
         use_fp16: bool = False,
         tokenize_processes: int = 0,
-        max_seq_length: Optional[int] = None,
+        max_seq_length: int | None = None,
     ):
         if model_name not in MODELS:
             raise ValueError(
@@ -155,8 +152,8 @@ class SentenceTransformerEmbedder(BaseEmbedder):
 
         local_path = self._ensure_local(model_name)
 
-        from sentence_transformers import SentenceTransformer
         import torch
+        from sentence_transformers import SentenceTransformer
 
         if device is None:
             device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -187,9 +184,7 @@ class SentenceTransformerEmbedder(BaseEmbedder):
         if self.prefix:
             print(f"  Prefix: '{self.prefix}'")
 
-        self.model = SentenceTransformer(
-            str(local_path), device=device, trust_remote_code=True
-        )
+        self.model = SentenceTransformer(str(local_path), device=device, trust_remote_code=True)
 
         if max_seq_length is not None:
             cap = int(max_seq_length)
@@ -226,7 +221,7 @@ class SentenceTransformerEmbedder(BaseEmbedder):
 
     def _encode_with_threaded_tokenize(
         self,
-        sentences: List[str],
+        sentences: list[str],
         *,
         show_progress_bar: bool,
         use_amp: bool,
@@ -248,9 +243,9 @@ class SentenceTransformerEmbedder(BaseEmbedder):
 
         length_sorted_idx = np.argsort([-model._text_length(sen) for sen in sentences])
         sentences_sorted = [sentences[int(idx)] for idx in length_sorted_idx]
-        all_batches: List[np.ndarray] = []
+        all_batches: list[np.ndarray] = []
 
-        def _tokenize_chunk(chunk: List[str]) -> Dict[str, Any]:
+        def _tokenize_chunk(chunk: list[str]) -> dict[str, Any]:
             return model.tokenize(chunk)
 
         for start_index in trange(
@@ -267,9 +262,7 @@ class SentenceTransformerEmbedder(BaseEmbedder):
             else:
                 n_workers = min(n_tok, n)
                 sub_size = max(1, math.ceil(n / n_workers))
-                chunks = [
-                    sentences_batch[i : i + sub_size] for i in range(0, n, sub_size)
-                ]
+                chunks = [sentences_batch[i : i + sub_size] for i in range(0, n, sub_size)]
                 with ThreadPoolExecutor(max_workers=n_workers) as executor:
                     parts = list(executor.map(_tokenize_chunk, chunks))
                 features = _merge_tokenized_features(parts, int(pad_id))
@@ -292,7 +285,7 @@ class SentenceTransformerEmbedder(BaseEmbedder):
 
     def embed_texts(
         self,
-        texts: List[str],
+        texts: list[str],
         max_retries: int = 1,
         *,
         show_progress_bar: bool = False,
@@ -311,12 +304,10 @@ class SentenceTransformerEmbedder(BaseEmbedder):
         import torch
 
         use_amp = (
-            self.use_fp16
-            and torch.cuda.is_available()
-            and self._resolved_device.startswith("cuda")
+            self.use_fp16 and torch.cuda.is_available() and self._resolved_device.startswith("cuda")
         )
 
-        encode_kw: Dict[str, Any] = {
+        encode_kw: dict[str, Any] = {
             "batch_size": self.batch_size,
             "show_progress_bar": show_progress_bar,
             "normalize_embeddings": True,

@@ -13,7 +13,8 @@ date is attached to ``metadata``.
 from __future__ import annotations
 
 import threading
-from typing import Any, Iterable, Union
+from collections.abc import Iterable
+from typing import Any
 
 from ._records import normalize_records
 
@@ -76,7 +77,7 @@ def clean_html(html: str) -> dict[str, Any]:
 
 
 def clean_documents(
-    docs: Union[str, dict, Iterable[Any]],
+    docs: str | dict | Iterable[Any],
     *,
     drop_empty: bool = True,
 ) -> list[dict[str, Any]]:

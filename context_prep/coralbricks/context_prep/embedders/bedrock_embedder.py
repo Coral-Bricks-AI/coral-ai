@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import json
 import time
-from typing import List
 
 from coralbricks.context_prep.embedders.base import BaseEmbedder
 
@@ -80,22 +79,15 @@ class BedrockEmbedder(BaseEmbedder):
             retries={"max_attempts": 3, "mode": "adaptive"},
             max_pool_connections=100,
         )
-        self.client = boto3.client(
-            "bedrock-runtime", region_name=aws_region, config=config
-        )
+        self.client = boto3.client("bedrock-runtime", region_name=aws_region, config=config)
 
-    def embed_texts(
-        self, texts: List[str], max_retries: int = 3
-    ) -> tuple[List[List[float]], dict]:
+    def embed_texts(self, texts: list[str], max_retries: int = 3) -> tuple[list[list[float]], dict]:
         if not texts:
             return [], {"prompt_tokens": 0, "total_tokens": 0}
 
-        if self.model_id.startswith("amazon.titan-embed-text-v2"):
-            max_batch_size = 100
-        else:
-            max_batch_size = 96
+        max_batch_size = 100 if self.model_id.startswith("amazon.titan-embed-text-v2") else 96
 
-        all_embeddings: List[List[float]] = []
+        all_embeddings: list[list[float]] = []
 
         for i in range(0, len(texts), max_batch_size):
             batch = texts[i : i + max_batch_size]
@@ -106,7 +98,7 @@ class BedrockEmbedder(BaseEmbedder):
                     break
                 except Exception as exc:
                     if attempt < max_retries - 1:
-                        wait_time = 2 ** attempt
+                        wait_time = 2**attempt
                         print(
                             f"Bedrock API error (attempt {attempt + 1}/{max_retries}): {exc}; "
                             f"retrying in {wait_time}s"
@@ -119,11 +111,11 @@ class BedrockEmbedder(BaseEmbedder):
 
         return all_embeddings, {"prompt_tokens": 0, "total_tokens": 0}
 
-    def _embed_batch(self, texts: List[str]) -> List[List[float]]:
+    def _embed_batch(self, texts: list[str]) -> list[list[float]]:
         if self.model_id.startswith("amazon.titan-embed-text-v2"):
             from concurrent.futures import ThreadPoolExecutor, as_completed
 
-            def embed_single(text: str) -> List[float]:
+            def embed_single(text: str) -> list[float]:
                 payload = {
                     "inputText": text,
                     "dimensions": self.dimension,
@@ -142,8 +134,7 @@ class BedrockEmbedder(BaseEmbedder):
             all_embeddings: list = [None] * len(texts)
             with ThreadPoolExecutor(max_workers=100) as executor:
                 future_to_idx = {
-                    executor.submit(embed_single, text): idx
-                    for idx, text in enumerate(texts)
+                    executor.submit(embed_single, text): idx for idx, text in enumerate(texts)
                 }
                 for future in as_completed(future_to_idx):
                     idx = future_to_idx[future]

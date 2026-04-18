@@ -4,9 +4,10 @@ from __future__ import annotations
 
 import re
 from abc import ABC, abstractmethod
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 from itertools import combinations
-from typing import Any, Sequence
+from typing import Any
 
 from ..enrichers.base import BaseExtractor
 
@@ -65,8 +66,7 @@ class BaseTripleExtractor(ABC):
     name: str = "base"
 
     @abstractmethod
-    def extract(self, record: dict[str, Any]) -> list[Triple]:
-        ...
+    def extract(self, record: dict[str, Any]) -> list[Triple]: ...
 
 
 class CooccurrenceExtractor(BaseTripleExtractor):
@@ -107,11 +107,7 @@ class CooccurrenceExtractor(BaseTripleExtractor):
         entities: list[tuple[str, str]] = []
         for bucket, label in self._sources.items():
             for hit in extractions.get(bucket, []):
-                value = (
-                    hit.get("value")
-                    if isinstance(hit, dict)
-                    else getattr(hit, "value", None)
-                )
+                value = hit.get("value") if isinstance(hit, dict) else getattr(hit, "value", None)
                 if value:
                     entities.append((label, str(value)))
 
@@ -176,7 +172,5 @@ class EntityCooccurrenceExtractor(CooccurrenceExtractor):
         meta = record.setdefault("metadata", {})
         bucket = meta.setdefault("extractions", {})
         for ex in self._extractors:
-            bucket.setdefault(
-                ex.name, [r.to_dict() for r in ex.extract(record.get("text", ""))]
-            )
+            bucket.setdefault(ex.name, [r.to_dict() for r in ex.extract(record.get("text", ""))])
         return super().extract(record)

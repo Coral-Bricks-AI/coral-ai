@@ -18,15 +18,15 @@ Three-step model:
 
 from __future__ import annotations
 
+from .hydrate import hydrate_graph, merge_graphs, write_graph_parquet
 from .triples import (
     BaseTripleExtractor,
     CooccurrenceExtractor,
+    Edge,
     EntityCooccurrenceExtractor,
     Node,
-    Edge,
     Triple,
 )
-from .hydrate import hydrate_graph, merge_graphs, write_graph_parquet
 
 __all__ = [
     "Triple",

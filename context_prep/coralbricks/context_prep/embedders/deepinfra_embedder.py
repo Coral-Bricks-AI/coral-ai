@@ -11,7 +11,6 @@ from __future__ import annotations
 import logging
 import os
 import time
-from typing import List, Optional
 
 from coralbricks.context_prep.embedders.base import BaseEmbedder
 
@@ -41,22 +40,19 @@ class DeepInfraEmbedder(BaseEmbedder):
     def __init__(
         self,
         model_name: str = "bge-m3",
-        api_key: Optional[str] = None,
+        api_key: str | None = None,
         batch_size: int = 512,
         input_type: str = "product",
     ):
         if model_name not in MODELS:
             raise ValueError(
-                f"Unknown DeepInfra model: {model_name}. "
-                f"Supported: {list(MODELS.keys())}"
+                f"Unknown DeepInfra model: {model_name}. Supported: {list(MODELS.keys())}"
             )
 
         try:
             from openai import OpenAI
         except ImportError as exc:
-            raise ImportError(
-                "openai package required. Install with: pip install openai"
-            ) from exc
+            raise ImportError("openai package required. Install with: pip install openai") from exc
 
         self.model_name = model_name
         self.model_info = MODELS[model_name]
@@ -77,15 +73,13 @@ class DeepInfraEmbedder(BaseEmbedder):
             self.batch_size,
         )
 
-    def embed_texts(
-        self, texts: List[str], max_retries: int = 5
-    ) -> tuple[List[List[float]], dict]:
+    def embed_texts(self, texts: list[str], max_retries: int = 5) -> tuple[list[list[float]], dict]:
         if not texts:
             return [], {"prompt_tokens": 0, "total_tokens": 0}
 
         total_prompt_tokens = 0
         total_tokens = 0
-        all_embeddings: List[List[float]] = []
+        all_embeddings: list[list[float]] = []
 
         for start in range(0, len(texts), self.batch_size):
             batch = texts[start : start + self.batch_size]
@@ -99,9 +93,7 @@ class DeepInfraEmbedder(BaseEmbedder):
             "total_tokens": total_tokens,
         }
 
-    def _call_api(
-        self, texts: List[str], max_retries: int
-    ) -> tuple[List[List[float]], dict]:
+    def _call_api(self, texts: list[str], max_retries: int) -> tuple[list[list[float]], dict]:
         for attempt in range(max_retries):
             try:
                 response = self.client.embeddings.create(
@@ -120,7 +112,7 @@ class DeepInfraEmbedder(BaseEmbedder):
                 return embeddings, usage
 
             except Exception as exc:
-                wait = min(2 ** attempt, 60)
+                wait = min(2**attempt, 60)
                 if attempt < max_retries - 1:
                     logger.warning(
                         "DeepInfra API error (attempt %d/%d): %s; retrying in %ds",

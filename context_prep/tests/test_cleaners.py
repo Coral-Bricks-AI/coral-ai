@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from coralbricks.context_prep.cleaners import TrafilaturaUnavailable, clean_documents, clean_html
+from coralbricks.context_prep.cleaners import clean_documents, clean_html
 
 trafilatura = pytest.importorskip("trafilatura")
 

@@ -13,7 +13,8 @@ pure Python.
 from __future__ import annotations
 
 from collections import defaultdict
-from typing import Any, Callable, Iterable, Literal, Sequence, Union
+from collections.abc import Callable, Iterable, Sequence
+from typing import Any, Literal
 
 How = Literal["inner", "left", "right", "outer"]
 Record = dict[str, Any]
@@ -30,7 +31,7 @@ def _coerce_records(items: Iterable[Any]) -> list[Record]:
     return out
 
 
-def _make_key_fn(on: Union[str, Sequence[str], KeyFn]) -> KeyFn:
+def _make_key_fn(on: str | Sequence[str] | KeyFn) -> KeyFn:
     if callable(on):
         return on
     if isinstance(on, str):
@@ -55,8 +56,8 @@ def join_records(
     left: Iterable[Any],
     right: Iterable[Any],
     *,
-    on: Union[str, Sequence[str], KeyFn],
-    right_on: Union[str, Sequence[str], KeyFn, None] = None,
+    on: str | Sequence[str] | KeyFn,
+    right_on: str | Sequence[str] | KeyFn | None = None,
     how: How = "left",
     suffixes: tuple[str, str] = ("_left", "_right"),
 ) -> list[Record]:
@@ -82,15 +83,15 @@ def join_records(
     matched_right_keys: set[Any] = set()
     out: list[Record] = []
 
-    for l in left_recs:
-        k = left_key_fn(l)
+    for lrec in left_recs:
+        k = left_key_fn(lrec)
         matches = right_index.get(k, [])
         if matches:
             matched_right_keys.add(k)
             for r in matches:
-                out.append(_merge(l, r, suffixes=suffixes))
+                out.append(_merge(lrec, r, suffixes=suffixes))
         elif how in {"left", "outer"}:
-            out.append(dict(l))
+            out.append(dict(lrec))
 
     if how in {"right", "outer"}:
         for r in right_recs:
