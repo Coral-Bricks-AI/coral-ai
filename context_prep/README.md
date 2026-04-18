@@ -67,6 +67,8 @@ enriched = enrich(cleaned, extractors=["tickers", "dates", "urls"])
 graph    = hydrate(enriched, graph="news")       # entity co-occurrence graph
 
 # Push to your vector store / graph DB / object store of choice.
+# (Or, for a fully embedded demo: see examples/embedded_rag_duckdb.py
+# — vectors + graph in one local DuckDB session, no servers.)
 ```
 
 ## Verbs
@@ -170,11 +172,17 @@ See [`examples/`](examples/):
 - [`rag_quickstart.py`](examples/rag_quickstart.py) — end-to-end clean → chunk → embed.
 - [`knowledge_graph.py`](examples/knowledge_graph.py) — build an entity graph from news.
 - [`distributed_hydrate.py`](examples/distributed_hydrate.py) — `hydrate_graph` + `merge_graphs` reduce.
+- [`embedded_rag_duckdb.py`](examples/embedded_rag_duckdb.py) — close the loop:
+  load the prepared parquet into one DuckDB session and run vector
+  top-K + variable-length graph traversal (via `vss` + `duckpgq`,
+  no servers, no Cypher). See the
+  [tutorial](docs/TUTORIAL_EMBEDDED_RAG.md) for the walk-through.
 
 ## Documentation
 
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — design principles & verb model.
 - [`docs/EXTENDING.md`](docs/EXTENDING.md) — write your own chunker / extractor / embedder.
+- [`docs/TUTORIAL_EMBEDDED_RAG.md`](docs/TUTORIAL_EMBEDDED_RAG.md) — end-to-end embedded RAG with DuckDB (vectors + graph in one session).
 - [`CHANGELOG.md`](CHANGELOG.md) — release history.
 
 ## Contributing
