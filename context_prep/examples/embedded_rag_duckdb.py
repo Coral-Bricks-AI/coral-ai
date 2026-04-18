@@ -130,9 +130,7 @@ class _LocalSTEmbedder(BaseEmbedder):
         self._dim = int(self._model.get_sentence_embedding_dimension())
 
     def embed_texts(self, texts: list[str]) -> tuple[list[list[float]], dict]:
-        vecs = self._model.encode(
-            texts, normalize_embeddings=True, show_progress_bar=False
-        )
+        vecs = self._model.encode(texts, normalize_embeddings=True, show_progress_bar=False)
         return [v.tolist() for v in vecs], {}
 
     def get_model_name(self) -> str:
@@ -170,12 +168,16 @@ class _HashEmbedder(BaseEmbedder):
 def _build_embedder() -> BaseEmbedder:
     try:
         emb = _LocalSTEmbedder()
-        print(f"[embedder] using sentence-transformers: {emb.get_model_name()}  "
-              f"dim={emb.get_dimension()}")
+        print(
+            f"[embedder] using sentence-transformers: {emb.get_model_name()}  "
+            f"dim={emb.get_dimension()}"
+        )
         return emb
     except Exception as exc:
-        print(f"[embedder] sentence-transformers unavailable ({exc.__class__.__name__}); "
-              "falling back to hash embedder (search results will be meaningless).")
+        print(
+            f"[embedder] sentence-transformers unavailable ({exc.__class__.__name__}); "
+            "falling back to hash embedder (search results will be meaningless)."
+        )
         return _HashEmbedder()
 
 
@@ -226,9 +228,7 @@ def _open_duckdb(vec_path: Path, nodes_path: Path, edges_path: Path, dim: int) -
 
     # VSS: HNSW index for cosine distance. Built in to DuckDB; auto-installs.
     con.execute("INSTALL vss; LOAD vss;")
-    con.execute(
-        "CREATE INDEX vec_hnsw ON vectors USING HNSW (vector) WITH (metric = 'cosine')"
-    )
+    con.execute("CREATE INDEX vec_hnsw ON vectors USING HNSW (vector) WITH (metric = 'cosine')")
 
     return con
 
@@ -269,21 +269,20 @@ def _load_duckpgq(con: Any) -> None:
 
 
 def _vector_topk(con: Any, query_vec: list[float], k: int = 4) -> list[tuple]:
+    dim = len(query_vec)
     rows = con.execute(
-        """
-        SELECT doc_id, text, array_cosine_distance(vector, ?::FLOAT[%d]) AS d
+        f"""
+        SELECT doc_id, text, array_cosine_distance(vector, ?::FLOAT[{dim}]) AS d
         FROM vectors
         ORDER BY d
-        LIMIT %d
-        """ % (len(query_vec), k),
+        LIMIT {k}
+        """,
         [query_vec],
     ).fetchall()
     return rows
 
 
-def _graph_neighbors(
-    con: Any, seed_ids: list[str], max_hops: int = 3
-) -> list[tuple]:
+def _graph_neighbors(con: Any, seed_ids: list[str], max_hops: int = 3) -> list[tuple]:
     """Variable-length traversal over DuckPGQ (SQL/PGQ)."""
     if not seed_ids:
         return []
