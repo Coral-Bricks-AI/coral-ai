@@ -1,7 +1,7 @@
 # py-gpu-inference
 
-[![PyPI version](https://img.shields.io/pypi/v/coral-gpu-inference.svg)](https://pypi.org/project/coral-gpu-inference/)
-[![Python 3.10+](https://img.shields.io/pypi/pyversions/coral-gpu-inference.svg)](https://pypi.org/project/coral-gpu-inference/)
+[![PyPI version](https://img.shields.io/pypi/v/coralbricks-gpu-inference.svg)](https://pypi.org/project/coralbricks-gpu-inference/)
+[![Python 3.10+](https://img.shields.io/pypi/pyversions/coralbricks-gpu-inference.svg)](https://pypi.org/project/coralbricks-gpu-inference/)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](../LICENSE)
 
 Production-grade GPU embedding inference in pure Python. No ONNX export, no TensorRT compilation, no C++ debugging — just `pip install` and serve.
@@ -11,8 +11,8 @@ Getting production throughput from a transformer model typically means leaving P
 `py-gpu-inference` stays entirely in Python/PyTorch while delivering the infrastructure that actually matters for production: intelligent batching that doesn't waste compute on padding, admission control that doesn't crash under load, and `torch.compile` with CUDA graphs for near-TensorRT forward-pass speed. You keep your HuggingFace model, your familiar debugging tools, and your iteration speed.
 
 ```bash
-pip install coral-gpu-inference
-python -m coral_gpu_inference.grpc_server
+pip install coralbricks-gpu-inference
+python -m coralbricks.gpu_inference.grpc_server
 ```
 
 That's it. Your model is now behind a gRPC server with token-bucket batching, backpressure, and GPU-optimized inference — no toolchain switch required.
@@ -90,10 +90,10 @@ Client Response
 ### Option 1: pip install from PyPI
 
 ```bash
-pip install coral-gpu-inference
+pip install coralbricks-gpu-inference
 
 # With optional extras
-pip install "coral-gpu-inference[s3,flash-attn]"
+pip install "coralbricks-gpu-inference[s3,flash-attn]"
 ```
 
 ### Option 2: Clone and run
@@ -106,7 +106,7 @@ pip install -r requirements.txt        # core deps
 pip install boto3                      # optional: S3 model loading + CloudWatch metrics
 pip install flash-attn                 # optional: Flash Attention 2 (Ampere+ GPUs)
 
-python -m coral_gpu_inference.grpc_server
+python -m coralbricks.gpu_inference.grpc_server
 ```
 
 ### Option 3: Install from source
@@ -116,30 +116,30 @@ python -m coral_gpu_inference.grpc_server
 pip install -e .
 
 # Directly from GitHub (no clone needed)
-pip install "coral-gpu-inference @ git+https://github.com/Coral-Bricks-AI/coral-ai.git#subdirectory=py-gpu-inference"
+pip install "coralbricks-gpu-inference @ git+https://github.com/Coral-Bricks-AI/coral-ai.git#subdirectory=py-gpu-inference"
 ```
 
 ### Run
 
 ```bash
 # Default: downloads answerdotai/ModernBERT-base from HuggingFace
-python -m coral_gpu_inference.grpc_server
+python -m coralbricks.gpu_inference.grpc_server
 
 # Local checkpoint
-MODEL_PATH=/path/to/checkpoint python -m coral_gpu_inference.grpc_server
+MODEL_PATH=/path/to/checkpoint python -m coralbricks.gpu_inference.grpc_server
 
 # S3 checkpoint (requires boto3)
-MODEL_PATH=s3://bucket/model/ python -m coral_gpu_inference.grpc_server
+MODEL_PATH=s3://bucket/model/ python -m coralbricks.gpu_inference.grpc_server
 
 # Any HuggingFace model
-MODEL_PATH=BAAI/bge-base-en-v1.5 python -m coral_gpu_inference.grpc_server
+MODEL_PATH=BAAI/bge-base-en-v1.5 python -m coralbricks.gpu_inference.grpc_server
 ```
 
 ### Test
 
 ```bash
 # With server running:
-python -m coral_gpu_inference.test_client
+python -m coralbricks.gpu_inference.test_client
 ```
 
 ## Configuration
