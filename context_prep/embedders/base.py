@@ -3,7 +3,8 @@
 All embedders must implement this interface.
 
 Moved here from ``www/ml/embed/embedders/base.py`` so that the embedder
-factory lives next to the ``coralbricks.context_prep`` DSL it powers. The old
+factory lives next to the ``coralbricks.context_prep`` DSL it powers.
+The old
 location is preserved as a thin shim for back-compat.
 """
 

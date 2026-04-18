@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import pytest
-
 from coralbricks.context_prep.cleaners import clean_documents, clean_html
 
 trafilatura = pytest.importorskip("trafilatura")

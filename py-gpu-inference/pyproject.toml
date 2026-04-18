@@ -3,7 +3,7 @@ requires = ["setuptools>=68.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "coral-gpu-inference"
+name = "coralbricks-gpu-inference"
 version = "0.1.0"
 description = "Production-grade gRPC GPU embedding inference server with token-bucket batching, backpressure, and torch.compile support."
 readme = "README.md"
@@ -41,5 +41,13 @@ Homepage = "https://github.com/Coral-Bricks-AI/coral-ai"
 Repository = "https://github.com/Coral-Bricks-AI/coral-ai"
 Issues = "https://github.com/Coral-Bricks-AI/coral-ai/issues"
 
-[tool.setuptools.packages.find]
-include = ["coral_gpu_inference*"]
+# Source layout is flat (this dir IS the package root); install layout
+# puts everything under the `coralbricks.*` PEP 420 namespace.
+[tool.setuptools]
+packages = ["coralbricks.gpu_inference"]
+
+[tool.setuptools.package-dir]
+"coralbricks.gpu_inference" = "."
+
+[tool.setuptools.package-data]
+"coralbricks.gpu_inference" = ["*.proto"]

@@ -9,7 +9,6 @@ These don't actually call any embedding API. They check:
 from __future__ import annotations
 
 import pytest
-
 from coralbricks.context_prep import embed
 from coralbricks.context_prep.embedders import (
     BaseEmbedder,

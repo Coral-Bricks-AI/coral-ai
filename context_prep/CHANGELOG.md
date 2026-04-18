@@ -29,4 +29,19 @@ Initial open-source release.
   `vectors.parquet` per call with a fixed-size float32 list column
   (Qdrant / pgvector / LanceDB / DuckDB ingest it directly), model +
   dimension stamped in parquet table metadata.
-- 49 unit tests, GitHub Actions CI on Python 3.10 / 3.11 / 3.12.
+- 51 unit tests, GitHub Actions CI on Python 3.10 / 3.11 / 3.12.
+
+### Layout
+
+- PyPI distribution: `coralbricks-context-prep`. Importable as
+  `coralbricks.context_prep`, part of the shared `coralbricks.*`
+  PEP 420 namespace used by every Coral Bricks library and the
+  closed-source `coralbricks-platform` SDK.
+- On-disk source is **flat** — no `coralbricks/` parent dir on disk,
+  no `src/` layer. The repo subdirectory `coral-ai/context_prep/` is
+  itself the package; setuptools rewrites the install-time name via
+  `[tool.setuptools.package-dir]` (`coralbricks.context_prep` → `.`).
+- Because the namespace dir is materialized only at install time,
+  `import coralbricks.context_prep` requires `pip install -e .` (or a
+  released wheel). `PYTHONPATH=...` against the source tree alone will
+  not resolve.

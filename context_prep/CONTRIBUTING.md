@@ -33,7 +33,7 @@ PRs that are gladly accepted:
 ## Development
 
 - **Style:** `ruff format` + `ruff check`.
-- **Types:** `mypy coralbricks/prep`.
+- **Types:** `mypy coralbricks/context_prep` (or simply `mypy .`).
 - **Tests:** `pytest`. New code needs tests. Optional-dep tests should
   use `pytest.importorskip(...)`.
 - **Imports:** every heavy or optional dependency must be imported
@@ -49,7 +49,7 @@ Conventional commits preferred (`feat:`, `fix:`, `docs:`, `chore:`,
 
 Maintainers cut releases by:
 
-1. Bumping `version` in `pyproject.toml` and `coralbricks/context_prep/__init__.py`.
+1. Bumping `version` in `pyproject.toml` and `__init__.py`.
 2. Adding a `CHANGELOG.md` section.
 3. Tagging `prep-vX.Y.Z` on `main`.
 4. CI publishes to PyPI.

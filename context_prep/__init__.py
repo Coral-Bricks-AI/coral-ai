@@ -1,9 +1,9 @@
 """Coral Bricks prep — build-time context preparation for agentic AI.
 
-`coralbricks.context_prep` is a small set of **primitives over records** that
-turn the data you already have (in pandas / duckdb / parquet / a queue)
-into agent-ready memory: cleaned text → chunks → embeddings → optional
-knowledge graph.
+`coralbricks.context_prep` is a small set of **primitives over
+records** that turn the data you already have (in pandas / duckdb /
+parquet / a queue) into agent-ready memory: cleaned text → chunks →
+embeddings → optional knowledge graph.
 
 Scope
 -----

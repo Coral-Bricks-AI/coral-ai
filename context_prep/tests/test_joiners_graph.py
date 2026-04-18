@@ -1,4 +1,4 @@
-"""Tests for coralbricks.context_prep.joiners and coralbricks.context_prep.graph."""
+"""Tests for coralbricks.context_prep.joiners and context_prep.graph."""
 
 from __future__ import annotations
 

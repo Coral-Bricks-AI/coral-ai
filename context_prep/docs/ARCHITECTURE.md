@@ -111,20 +111,55 @@ parallel — use it as your reduce step after distributed hydration.
 
 - Python 3.10+.
 - SemVer. The public surface is everything re-exported from
-  `coralbricks.context_prep` (`__all__`). Anything under `coralbricks.context_prep._*`
-  is internal and may change without notice.
+  `coralbricks.context_prep` (`__all__`). Anything under
+  `coralbricks.context_prep._*` is internal and may change without
+  notice.
 - We follow a "no deprecation surprises" rule: if we're going to
   remove something, we'll deprecate-warn for one minor release first.
 
-## Why `coralbricks.context_prep` and not `coral_prep`?
+## Package layout
 
-The `coralbricks` namespace is a [PEP 420 namespace
-package](https://peps.python.org/pep-0420/). The same import path is
-shared by:
+The PyPI distribution is **`coralbricks-context-prep`** and the
+importable Python package is **`coralbricks.context_prep`** — part of
+the shared `coralbricks.*` [PEP 420 namespace
+package](https://peps.python.org/pep-0420/) used by every Coral
+Bricks library and the closed-source `coralbricks-platform` SDK.
 
-- `coralbricks-context-prep` (this OSS package) — `coralbricks.context_prep.*`
-- the closed-source Coral Bricks platform SDK — `coralbricks.client`,
-  `coralbricks.project`, etc.
+The on-disk source layout is **flat** — there is no `coralbricks/`
+parent dir to navigate. The repo subdirectory `coral-ai/context_prep/`
+is itself the package; `[tool.setuptools.package-dir]` rewrites the
+install-time name:
 
-This lets users start with the OSS library and graduate to the
-managed platform without rewriting imports.
+```
+coral-ai/
+└── context_prep/                 # source root, AND coralbricks.context_prep at install
+    ├── pyproject.toml            # name = coralbricks-context-prep
+    │                             # package-dir = {"coralbricks.context_prep" = "."}
+    ├── README.md / LICENSE / CHANGELOG.md
+    ├── __init__.py               # `from coralbricks.context_prep import ...`
+    ├── verbs.py
+    ├── chunkers/  embedders/  enrichers/  graph/
+    ├── tests/
+    └── examples/
+```
+
+This means:
+
+- **Source readers** see one folder, no `coralbricks/` namespace dir
+  on disk, no `src/` layer.
+- **Library users** import `from coralbricks.context_prep import ...`
+  — branded, namespaced, conflict-free with any random PyPI package
+  named `context_prep`.
+- **Sibling OSS distributions** (`coralbricks-gpu-inference`, future
+  packages) each contribute their own subpackage to the same
+  `coralbricks.*` namespace via the same `package-dir` trick. PEP 420
+  combines them at runtime.
+- **Closed-source platform SDK** (`coralbricks-platform`) ships
+  `coralbricks.client`, `coralbricks.project`, `coralbricks.runs`,
+  `coralbricks.platform.*` from a separate distribution. Same
+  namespace, no conflict.
+
+Note: because there is no `coralbricks/` dir in the source tree,
+`import coralbricks.context_prep` only resolves after the package is
+installed (`pip install -e .`). Running the source tree directly with
+`PYTHONPATH=...` will NOT work — install it.
