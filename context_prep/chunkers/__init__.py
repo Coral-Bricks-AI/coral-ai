@@ -28,15 +28,15 @@ from __future__ import annotations
 
 from typing import Any
 
-from coralbricks.context_prep.chunkers._tokens import count_tokens, get_tokenizer
-from coralbricks.context_prep.chunkers.base import BaseChunker, Chunk
-from coralbricks.context_prep.chunkers.fixed_token import FixedTokenChunker
-from coralbricks.context_prep.chunkers.recursive_character import (
+from context_prep.chunkers._tokens import count_tokens, get_tokenizer
+from context_prep.chunkers.base import BaseChunker, Chunk
+from context_prep.chunkers.fixed_token import FixedTokenChunker
+from context_prep.chunkers.recursive_character import (
     DEFAULT_SEPARATORS,
     RecursiveCharacterChunker,
 )
-from coralbricks.context_prep.chunkers.sentence import SentenceChunker
-from coralbricks.context_prep.chunkers.sliding_token import SlidingTokenChunker
+from context_prep.chunkers.sentence import SentenceChunker
+from context_prep.chunkers.sliding_token import SlidingTokenChunker
 
 __all__ = [
     "Chunk",
@@ -91,7 +91,7 @@ def chunk_text(
 
     Examples::
 
-        from coralbricks.context_prep.chunkers import chunk_text
+        from context_prep.chunkers import chunk_text
 
         # 512-token sliding window with 64-token overlap (default).
         chunks = chunk_text(big_doc)

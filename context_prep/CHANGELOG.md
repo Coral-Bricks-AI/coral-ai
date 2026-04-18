@@ -24,9 +24,18 @@ Initial open-source release.
 - Graph: triple extraction → nodes/edges, parquet output, plus
   `merge_graphs(*partials)` for distributed-hydration reduce step.
 - Vector parquet sink:
-  `coralbricks.context_prep.embedders.write_vectors_parquet(...)` and
+  `context_prep.embedders.write_vectors_parquet(...)` and
   `embed(..., output_dir=...)` — single self-describing
   `vectors.parquet` per call with a fixed-size float32 list column
   (Qdrant / pgvector / LanceDB / DuckDB ingest it directly), model +
   dimension stamped in parquet table metadata.
-- 49 unit tests, GitHub Actions CI on Python 3.10 / 3.11 / 3.12.
+- 51 unit tests, GitHub Actions CI on Python 3.10 / 3.11 / 3.12.
+
+### Layout
+
+- The PyPI distribution is `coralbricks-context-prep` and the
+  importable package is `context_prep`. The repo subdirectory
+  `coral-ai/context_prep/` is itself the Python package — no
+  intermediate `coralbricks/` namespace dir, no `src/` layer.
+  Setuptools maps `context_prep` → `.` via
+  `[tool.setuptools.package-dir]`.

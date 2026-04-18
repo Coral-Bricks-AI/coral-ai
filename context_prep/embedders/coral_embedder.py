@@ -10,8 +10,8 @@ import logging
 import os
 from typing import Any
 
-from coralbricks.context_prep.embedders._env import load_embed_dotenv
-from coralbricks.context_prep.embedders.base import BaseEmbedder
+from context_prep.embedders._env import load_embed_dotenv
+from context_prep.embedders.base import BaseEmbedder
 
 _log = logging.getLogger(__name__)
 load_embed_dotenv()

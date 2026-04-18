@@ -15,8 +15,8 @@ from __future__ import annotations
 from concurrent.futures import ProcessPoolExecutor
 from typing import Any
 
-from coralbricks.context_prep.enrichers import TickerExtractor, enrich_documents
-from coralbricks.context_prep.graph import (
+from context_prep.enrichers import TickerExtractor, enrich_documents
+from context_prep.graph import (
     CooccurrenceExtractor,
     hydrate_graph,
     merge_graphs,

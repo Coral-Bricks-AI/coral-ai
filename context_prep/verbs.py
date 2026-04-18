@@ -22,7 +22,7 @@ expected to call them per-batch / per-row inside its own tasks.
 
 In-memory ``Recipe`` execution exists for prototyping and tests. For
 million-row jobs, call the underlying primitives in
-:mod:`coralbricks.context_prep.chunkers`, :mod:`.embedders`, :mod:`.cleaners`,
+:mod:`context_prep.chunkers`, :mod:`.embedders`, :mod:`.cleaners`,
 :mod:`.enrichers`, and :mod:`.graph` directly.
 
 Status
@@ -93,7 +93,7 @@ def chunk(
     dry_run: bool | None = None,
     **kwargs: Any,
 ) -> Artifact:
-    """Chunk text using one of the algorithms in ``coralbricks.context_prep.chunkers``.
+    """Chunk text using one of the algorithms in ``context_prep.chunkers``.
 
     Inputs:
     - ``str``: chunk a single document.
@@ -106,7 +106,7 @@ def chunk(
     setup. Override with ``"fixed_token"``, ``"recursive_character"``,
     or ``"sentence"``.
 
-    For million-row jobs, call :func:`coralbricks.context_prep.chunkers.chunk_text`
+    For million-row jobs, call :func:`context_prep.chunkers.chunk_text`
     directly inside your orchestrator's per-row task.
     """
     if dry_run is None:
@@ -210,7 +210,7 @@ def embed(
 ) -> Artifact:
     """Embed text using the multi-provider embedder factory.
 
-    See :mod:`coralbricks.context_prep.embedders` for the full model routing
+    See :mod:`context_prep.embedders` for the full model routing
     table (``coral_embed``, ``coral_gateway``, OpenAI, Bedrock, ``st:``,
     ``di:``).
 
@@ -242,10 +242,10 @@ def embed(
     ``s3://`` / ``gs://`` URIs are planned for 0.2.0.
 
     For million-row jobs, build an embedder once via
-    :func:`coralbricks.context_prep.embedders.create_embedder` and call
+    :func:`context_prep.embedders.create_embedder` and call
     ``embedder.embed_texts(batch)`` directly inside your orchestrator's
     batch task — pair it with
-    :func:`coralbricks.context_prep.embedders.write_vectors_parquet` per shard.
+    :func:`context_prep.embedders.write_vectors_parquet` per shard.
     """
     if dry_run is None:
         dry_run = isinstance(chunks, Artifact) and "chunks" not in (chunks.metadata or {})
@@ -364,7 +364,7 @@ def clean(
     - ``Artifact``: when produced by another verb that materialised
       documents (``enrich``), cleans them.
 
-    For million-row jobs, call :func:`coralbricks.context_prep.cleaners.clean_html`
+    For million-row jobs, call :func:`context_prep.cleaners.clean_html`
     directly per row inside your orchestrator's task.
     """
     if dry_run is None:
@@ -429,7 +429,7 @@ def enrich(
     """Extract structured signals (tickers, dates, urls, NER, ...) per document.
 
     ``extractors`` is a list of names from
-    :data:`coralbricks.context_prep.enrichers.REGISTRY` (e.g. ``"tickers"``,
+    :data:`context_prep.enrichers.REGISTRY` (e.g. ``"tickers"``,
     ``"dates"``, ``"urls"``) or :class:`BaseExtractor` instances. Pass a
     :class:`SpacyEntityExtractor` instance to get NER.
 
@@ -439,7 +439,7 @@ def enrich(
     Each output record gets ``metadata["extractions"][name]`` populated.
 
     For million-row jobs, call
-    :func:`coralbricks.context_prep.enrichers.enrich_documents` (or the
+    :func:`context_prep.enrichers.enrich_documents` (or the
     individual extractor classes) inside your orchestrator's task.
     """
     if dry_run is None:
@@ -508,7 +508,7 @@ def join(
 ) -> Artifact:
     """Hash-join two sets of records on a shared key.
 
-    Backed by :func:`coralbricks.context_prep.joiners.join_records`. **Small
+    Backed by :func:`context_prep.joiners.join_records`. **Small
     data only** — for tables larger than a few hundred thousand rows,
     use DuckDB / pandas / Spark and pass the result back in.
 
@@ -588,9 +588,9 @@ def hydrate(
     When ``output_dir`` is set, ``nodes.parquet`` and ``edges.parquet``
     are written there (requires pyarrow).
 
-    For million-row jobs, run :func:`coralbricks.context_prep.graph.hydrate_graph`
+    For million-row jobs, run :func:`context_prep.graph.hydrate_graph`
     on each shard inside your orchestrator's tasks, then combine the
-    results with :func:`coralbricks.context_prep.graph.merge_graphs` before
+    results with :func:`context_prep.graph.merge_graphs` before
     handing them to your downstream graph store.
     """
     if dry_run is None:

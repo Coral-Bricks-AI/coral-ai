@@ -1,34 +1,23 @@
-"""Sliding-window token chunker.
+"""Fixed-token chunker.
 
-Like ``FixedTokenChunker`` but with a configurable overlap so adjacent
-chunks share a tail / head of context. This is the standard chunking
-strategy for embedding-based RAG.
+Splits a text into non-overlapping windows of approximately
+``target_tokens`` tokens each, walking by character offset to keep
+``Chunk.start`` / ``Chunk.end`` aligned with the source text.
 """
 
 from __future__ import annotations
 
-from coralbricks.context_prep.chunkers._tokens import get_tokenizer
-from coralbricks.context_prep.chunkers.base import BaseChunker, Chunk
+from context_prep.chunkers._tokens import get_tokenizer
+from context_prep.chunkers.base import BaseChunker, Chunk
 
 
-class SlidingTokenChunker(BaseChunker):
-    name = "sliding_token"
+class FixedTokenChunker(BaseChunker):
+    name = "fixed_token"
 
-    def __init__(
-        self,
-        *,
-        target_tokens: int = 512,
-        overlap: int = 64,
-        encoding: str = "cl100k_base",
-    ):
+    def __init__(self, *, target_tokens: int = 512, encoding: str = "cl100k_base"):
         if target_tokens <= 0:
             raise ValueError("target_tokens must be > 0")
-        if overlap < 0:
-            raise ValueError("overlap must be >= 0")
-        if overlap >= target_tokens:
-            raise ValueError("overlap must be < target_tokens")
         self.target_tokens = int(target_tokens)
-        self.overlap = int(overlap)
         self.encoding = encoding
         self._tok = get_tokenizer(encoding)
 
@@ -40,13 +29,15 @@ class SlidingTokenChunker(BaseChunker):
         if not ids:
             return []
 
+        # We can't always reverse-decode token spans to character spans
+        # (especially with the whitespace fallback), so we walk character
+        # offsets in proportion to the token spans. This is an
+        # approximation but is monotonic and covers the whole text.
         n_tokens = len(ids)
         n_chars = len(text)
-        step = self.target_tokens - self.overlap
         chunks: list[Chunk] = []
 
-        i = 0
-        while i < n_tokens:
+        for i in range(0, n_tokens, self.target_tokens):
             tok_start = i
             tok_end = min(i + self.target_tokens, n_tokens)
             char_start = (tok_start * n_chars) // n_tokens
@@ -60,11 +51,8 @@ class SlidingTokenChunker(BaseChunker):
                     end=char_end,
                     index=len(chunks),
                     token_count=tok_end - tok_start,
-                    metadata={"strategy": self.name, "overlap": self.overlap},
+                    metadata={"strategy": self.name},
                 )
             )
-            if tok_end >= n_tokens:
-                break
-            i += step
 
         return chunks

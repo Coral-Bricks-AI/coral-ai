@@ -8,7 +8,7 @@ Run:
 
 from __future__ import annotations
 
-from coralbricks.context_prep import enrich, hydrate
+from context_prep import enrich, hydrate
 
 NEWS = [
     {"id": "n1", "text": "$AAPL and $MSFT both rallied on the Fed announcement."},

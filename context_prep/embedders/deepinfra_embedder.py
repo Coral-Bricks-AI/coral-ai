@@ -12,7 +12,7 @@ import logging
 import os
 import time
 
-from coralbricks.context_prep.embedders.base import BaseEmbedder
+from context_prep.embedders.base import BaseEmbedder
 
 logger = logging.getLogger(__name__)
 

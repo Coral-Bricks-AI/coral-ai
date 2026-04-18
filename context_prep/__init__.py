@@ -1,6 +1,6 @@
 """Coral Bricks prep — build-time context preparation for agentic AI.
 
-`coralbricks.context_prep` is a small set of **primitives over records** that
+`context_prep` is a small set of **primitives over records** that
 turn the data you already have (in pandas / duckdb / parquet / a queue)
 into agent-ready memory: cleaned text → chunks → embeddings → optional
 knowledge graph.
@@ -22,15 +22,15 @@ million-row jobs, call the underlying primitives directly inside your
 orchestrator's tasks::
 
     # in a Ray / Prefect / Spark task:
-    from coralbricks.context_prep.chunkers import chunk_text
-    from coralbricks.context_prep.embedders import create_embedder
+    from context_prep.chunkers import chunk_text
+    from context_prep.embedders import create_embedder
 
     chunks = chunk_text(row["text"], strategy="sliding_token", target_tokens=512)
     vectors = embedder.embed_texts([c.text for c in chunks])
 
 Public verbs (each returns an :class:`Artifact`)::
 
-    from coralbricks.context_prep import clean, chunk, embed, enrich, hydrate, join
+    from context_prep import clean, chunk, embed, enrich, hydrate, join
 
     cleaned  = clean(records)                                    # trafilatura
     chunks   = chunk(cleaned, strategy="sliding_token", target_tokens=512)
@@ -44,16 +44,16 @@ composition / tests.
 
 Backing modules:
 
-- :mod:`coralbricks.context_prep.cleaners` — trafilatura main-content extraction
+- :mod:`context_prep.cleaners` — trafilatura main-content extraction
   (no custom rules).
-- :mod:`coralbricks.context_prep.chunkers` — fixed/sliding token,
+- :mod:`context_prep.chunkers` — fixed/sliding token,
   recursive-character, sentence.
-- :mod:`coralbricks.context_prep.embedders` — Coral, OpenAI, Bedrock,
+- :mod:`context_prep.embedders` — Coral, OpenAI, Bedrock,
   sentence-transformers, DeepInfra.
-- :mod:`coralbricks.context_prep.enrichers` — regex extractors + spaCy NER.
-- :mod:`coralbricks.context_prep.joiners` — hash join over dict records (small
+- :mod:`context_prep.enrichers` — regex extractors + spaCy NER.
+- :mod:`context_prep.joiners` — hash join over dict records (small
   data only — for big tables use DuckDB/Spark).
-- :mod:`coralbricks.context_prep.graph` — triples → nodes/edges, plus
+- :mod:`context_prep.graph` — triples → nodes/edges, plus
   :func:`merge_graphs` for combining partial graphs from distributed
   hydration workers.
 """

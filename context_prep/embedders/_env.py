@@ -1,8 +1,8 @@
 """Shared dotenv discovery for embedders.
 
 Embedders historically read API keys from ``www/ml/embed/.env``. Now that
-the embedder code lives under ``coralbricks/context_prep/embedders``, we
-look in a few candidate locations so existing user setups keep working.
+the embedder code lives under ``context_prep/embedders``, we look in a
+few candidate locations so existing user setups keep working.
 """
 
 from __future__ import annotations
@@ -15,7 +15,7 @@ _CANDIDATE_REL_PATHS: tuple[str, ...] = (
     # New SDK location ($CWD/.env or platform/.env)
     ".env",
     # Legacy embedder home
-    "../../../../embed/.env",  # coralbricks/context_prep/embedders -> www/ml/embed
+    "../../../../embed/.env",  # context_prep/embedders -> www/ml/embed (legacy checkout)
     "../../embed/.env",  # repo-root anchored fallback
 )
 

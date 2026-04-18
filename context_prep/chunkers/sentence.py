@@ -9,8 +9,8 @@ from __future__ import annotations
 
 import re
 
-from coralbricks.context_prep.chunkers._tokens import count_tokens
-from coralbricks.context_prep.chunkers.base import BaseChunker, Chunk
+from context_prep.chunkers._tokens import count_tokens
+from context_prep.chunkers.base import BaseChunker, Chunk
 
 # Sentence boundaries: end-punctuation followed by whitespace + capital,
 # guarded against common abbreviations.

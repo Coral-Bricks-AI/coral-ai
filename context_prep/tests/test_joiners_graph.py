@@ -1,15 +1,15 @@
-"""Tests for coralbricks.context_prep.joiners and coralbricks.context_prep.graph."""
+"""Tests for context_prep.joiners and context_prep.graph."""
 
 from __future__ import annotations
 
-from coralbricks.context_prep.enrichers import TickerExtractor, enrich_documents
-from coralbricks.context_prep.graph import (
+from context_prep.enrichers import TickerExtractor, enrich_documents
+from context_prep.graph import (
     CooccurrenceExtractor,
     EntityCooccurrenceExtractor,
     hydrate_graph,
     merge_graphs,
 )
-from coralbricks.context_prep.joiners import join_records
+from context_prep.joiners import join_records
 
 
 def test_join_inner() -> None:

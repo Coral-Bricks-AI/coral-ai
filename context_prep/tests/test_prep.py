@@ -1,4 +1,4 @@
-"""Unit tests for the coralbricks.context_prep DSL.
+"""Unit tests for the context_prep DSL.
 
 Covers both:
 - Dry-run shape: each verb returns an Artifact with the right kind and
@@ -12,7 +12,7 @@ covered in their own targeted tests.
 
 from __future__ import annotations
 
-from coralbricks.context_prep import (
+from context_prep import (
     Artifact,
     ArtifactKind,
     Recipe,

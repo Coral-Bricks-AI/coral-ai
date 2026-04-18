@@ -7,11 +7,11 @@ interpreter.
 **Scope:** Recipe is a prototyping convenience. It is single-process,
 in-memory, no checkpointing, no retries, no parallelism. For
 million-row jobs, drop Recipe entirely and call the prep primitives
-(``coralbricks.context_prep.chunkers``, ``.embedders``, ``.cleaners``,
+(``context_prep.chunkers``, ``.embedders``, ``.cleaners``,
 ``.enrichers``, ``.graph``) directly inside your orchestrator's tasks
 (Airflow, Prefect, Dagster, Ray, Spark, etc.). For partial-graph
 hydration in distributed jobs, use
-:func:`coralbricks.context_prep.graph.merge_graphs` as the reduce step.
+:func:`context_prep.graph.merge_graphs` as the reduce step.
 
 Usage::
 

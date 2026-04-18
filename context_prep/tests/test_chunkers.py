@@ -1,10 +1,10 @@
-"""Unit tests for coralbricks.context_prep.chunkers."""
+"""Unit tests for context_prep.chunkers."""
 
 from __future__ import annotations
 
 import pytest
 
-from coralbricks.context_prep.chunkers import (
+from context_prep.chunkers import (
     BaseChunker,
     Chunk,
     FixedTokenChunker,

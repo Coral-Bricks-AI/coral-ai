@@ -13,16 +13,16 @@ from __future__ import annotations
 
 from typing import Any
 
-from coralbricks.context_prep.embedders.base import BaseEmbedder
-from coralbricks.context_prep.embedders.coral_embedder import CoralEmbedder
-from coralbricks.context_prep.embedders.coral_gateway_embedder import CoralGatewayEmbedder
-from coralbricks.context_prep.embedders.deepinfra_embedder import (
+from context_prep.embedders.base import BaseEmbedder
+from context_prep.embedders.coral_embedder import CoralEmbedder
+from context_prep.embedders.coral_gateway_embedder import CoralGatewayEmbedder
+from context_prep.embedders.deepinfra_embedder import (
     MODELS as DI_MODELS,
 )
-from coralbricks.context_prep.embedders.deepinfra_embedder import (
+from context_prep.embedders.deepinfra_embedder import (
     DeepInfraEmbedder,
 )
-from coralbricks.context_prep.embedders.openai_embedder import OpenAIEmbedder
+from context_prep.embedders.openai_embedder import OpenAIEmbedder
 
 # Heavy backends (boto3 / sentence-transformers + torch) are imported on
 # demand so callers that only need API-backed embedders don't pay the cost.
@@ -33,7 +33,7 @@ _BEDROCK_MODULE: Any | None = None
 def _load_st():
     global _ST_MODULE
     if _ST_MODULE is None:
-        from coralbricks.context_prep.embedders import sentence_transformer_embedder as st
+        from context_prep.embedders import sentence_transformer_embedder as st
 
         _ST_MODULE = st
     return _ST_MODULE
@@ -42,7 +42,7 @@ def _load_st():
 def _load_bedrock():
     global _BEDROCK_MODULE
     if _BEDROCK_MODULE is None:
-        from coralbricks.context_prep.embedders import bedrock_embedder as br
+        from context_prep.embedders import bedrock_embedder as br
 
         _BEDROCK_MODULE = br
     return _BEDROCK_MODULE

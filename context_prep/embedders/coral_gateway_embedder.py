@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import os
 
-from coralbricks.context_prep.embedders.base import BaseEmbedder
+from context_prep.embedders.base import BaseEmbedder
 
 
 class CoralGatewayEmbedder(BaseEmbedder):

@@ -98,11 +98,11 @@ orchestrator's task function:
 
 | Verb              | Primitive                                              |
 | ----------------- | ------------------------------------------------------ |
-| `clean(...)`      | `coralbricks.context_prep.cleaners.clean_html(html_str)`       |
-| `chunk(...)`      | `coralbricks.context_prep.chunkers.chunk_text(text, ...)`      |
-| `embed(...)`      | `embedder.embed_texts(batch_texts)` + `coralbricks.context_prep.embedders.write_vectors_parquet(...)` |
-| `enrich(...)`     | `coralbricks.context_prep.enrichers.enrich_documents(...)`     |
-| `hydrate(...)`    | `coralbricks.context_prep.graph.hydrate_graph(records, ...)`   |
+| `clean(...)`      | `context_prep.cleaners.clean_html(html_str)`       |
+| `chunk(...)`      | `context_prep.chunkers.chunk_text(text, ...)`      |
+| `embed(...)`      | `embedder.embed_texts(batch_texts)` + `context_prep.embedders.write_vectors_parquet(...)` |
+| `enrich(...)`     | `context_prep.enrichers.enrich_documents(...)`     |
+| `hydrate(...)`    | `context_prep.graph.hydrate_graph(records, ...)`   |
 
 `merge_graphs(*partials)` is the one stage that isn't embarrassingly
 parallel — use it as your reduce step after distributed hydration.
@@ -111,20 +111,36 @@ parallel — use it as your reduce step after distributed hydration.
 
 - Python 3.10+.
 - SemVer. The public surface is everything re-exported from
-  `coralbricks.context_prep` (`__all__`). Anything under `coralbricks.context_prep._*`
+  `context_prep` (`__all__`). Anything under `context_prep._*`
   is internal and may change without notice.
 - We follow a "no deprecation surprises" rule: if we're going to
   remove something, we'll deprecate-warn for one minor release first.
 
-## Why `coralbricks.context_prep` and not `coral_prep`?
+## Package layout
 
-The `coralbricks` namespace is a [PEP 420 namespace
-package](https://peps.python.org/pep-0420/). The same import path is
-shared by:
+The PyPI distribution is **`coralbricks-context-prep`**, but the
+importable Python package is **`context_prep`** — a flat,
+single-namespace package living directly inside this repo
+subdirectory:
 
-- `coralbricks-context-prep` (this OSS package) — `coralbricks.context_prep.*`
-- the closed-source Coral Bricks platform SDK — `coralbricks.client`,
-  `coralbricks.project`, etc.
+```
+coral-ai/
+└── context_prep/                 # repo dir == project root == package root
+    ├── pyproject.toml            # PyPI metadata (name = coralbricks-context-prep)
+    ├── README.md / LICENSE / CHANGELOG.md
+    ├── __init__.py               # `import context_prep`
+    ├── verbs.py
+    ├── chunkers/  embedders/  enrichers/  graph/
+    ├── tests/
+    └── examples/
+```
 
-This lets users start with the OSS library and graduate to the
-managed platform without rewriting imports.
+Setuptools is configured (`[tool.setuptools.package-dir]`) to map
+`context_prep` → `.`, so installing this package is equivalent to
+installing the directory itself. There is no `coralbricks` namespace
+parent and no `src/` layer — one folder, one package, one import path.
+
+The closed-source Coral Bricks platform SDK ships separately as
+`coralbricks-platform` and owns the `coralbricks.*` import path
+(e.g. `coralbricks.client`, `coralbricks.project`). It depends on
+`coralbricks-context-prep` and re-exports the verbs internally.

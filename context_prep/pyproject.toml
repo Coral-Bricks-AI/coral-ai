@@ -93,11 +93,23 @@ Issues = "https://github.com/Coral-Bricks-AI/coral-ai/issues"
 Documentation = "https://github.com/Coral-Bricks-AI/coral-ai/tree/main/context_prep#readme"
 Changelog = "https://github.com/Coral-Bricks-AI/coral-ai/blob/main/context_prep/CHANGELOG.md"
 
-[tool.setuptools.packages.find]
-# PEP 420 namespace package. `coralbricks/` has no __init__.py.
-where = ["."]
-include = ["coralbricks*"]
-exclude = ["tests*", "examples*"]
+# The project root *is* the package root. `import context_prep` maps to
+# this directory; subpackages map to sibling dirs (`./chunkers`, etc.).
+[tool.setuptools]
+packages = [
+    "context_prep",
+    "context_prep.chunkers",
+    "context_prep.embedders",
+    "context_prep.enrichers",
+    "context_prep.graph",
+]
+
+[tool.setuptools.package-dir]
+context_prep = "."
+"context_prep.chunkers" = "chunkers"
+"context_prep.embedders" = "embedders"
+"context_prep.enrichers" = "enrichers"
+"context_prep.graph" = "graph"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -114,11 +126,11 @@ ignore = ["E501"]  # line length handled by formatter
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["B", "N802", "N806"]
 # Public exception name; renaming is a breaking API change.
-"coralbricks/context_prep/cleaners.py" = ["N818"]
+"cleaners.py" = ["N818"]
 # Legacy embedder file: torch convention for `import torch.nn.functional as F`,
 # guarded top-level imports, and pre-existing style choices we don't want to
 # churn for the 0.1.0 cut.
-"coralbricks/context_prep/embedders/sentence_transformer_embedder.py" = [
+"embedders/sentence_transformer_embedder.py" = [
     "E402",
     "N812",
     "SIM105",
