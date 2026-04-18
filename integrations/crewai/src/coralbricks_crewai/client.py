@@ -18,8 +18,6 @@ class CoralBricksClient:
       "x-api-key": api_key,
     }
 
-  # Low-level helpers -----------------------------------------------------
-
   def _post(self, path: str, json: Dict[str, Any]) -> Dict[str, Any]:
     url = f"{self.base_url}{path}"
     resp = requests.post(url, headers=self._headers, json=json, timeout=30)
@@ -31,14 +29,6 @@ class CoralBricksClient:
 
   # Store management ------------------------------------------------------
 
-  def create_memory_store(self, store_name: str) -> Dict[str, Any]:
-    """Create a new memory store (TurboPuffer namespace).
-
-    Returns dict with store_name, namespace, and created flag.
-    Raises if the store already exists (HTTP 409).
-    """
-    return self._post("/v1/memory/stores", {"store_name": store_name})
-
   def get_or_create_memory_store(self, store_name: str) -> Dict[str, Any]:
     """Get an existing memory store or create it. Idempotent.
 
@@ -46,7 +36,7 @@ class CoralBricksClient:
     """
     return self._post("/v1/memory/stores/get_or_create", {"store_name": store_name})
 
-  # Public API ------------------------------------------------------------
+  # Core memory operations ------------------------------------------------
 
   def store(
     self,
@@ -57,19 +47,25 @@ class CoralBricksClient:
     store_name: str | None = None,
   ) -> str:
     """Store a memory item. Returns the new memory id."""
-    payload: Dict[str, Any] = {"text": text}
+    item: Dict[str, Any] = {"text": text}
+    if metadata is not None:
+      item["metadata"] = metadata
+
+    payload: Dict[str, Any] = {"items": [item]}
     if project_id is not None:
       payload["project_id"] = project_id
     if session_id is not None:
       payload["session_id"] = session_id
-    if metadata is not None:
-      payload["metadata"] = metadata
     if store_name is not None:
       payload["store"] = store_name
-    data = self._post("/store", payload)
-    mem_id = data.get("id")
+
+    data = self._post("/v1/memory/save", payload)
+    items = data.get("items")
+    if not isinstance(items, list) or len(items) == 0:
+      raise RuntimeError("CoralBricks /v1/memory/save did not return items")
+    mem_id = items[0].get("id")
     if not isinstance(mem_id, str):
-      raise RuntimeError("CoralBricks /store did not return an id")
+      raise RuntimeError("CoralBricks /v1/memory/save did not return an id")
     return mem_id
 
   def search(
@@ -90,11 +86,11 @@ class CoralBricksClient:
       payload["session_id"] = session_id
     if store_name is not None:
       payload["store"] = store_name
-    data = self._post("/search", payload)
-    results = data.get("results")
-    if not isinstance(results, list):
+    data = self._post("/v1/memory/query", payload)
+    hits = data.get("hits")
+    if not isinstance(hits, list):
       return []
-    return [r for r in results if isinstance(r, dict)]
+    return [h for h in hits if isinstance(h, dict)]
 
   def forget(
     self,

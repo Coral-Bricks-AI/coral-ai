@@ -1,15 +1,8 @@
-"""HTTP client for the CoralBricks Memory API.
-
-Provides the same core surface as the crewAI client (store, search, forget,
-store management) plus LangChain-specific chat-history endpoints:
-
-  POST /v1/memory/chat  – append a chat message
-  GET  /v1/memory/chat  – list chat messages for a conversation
-"""
+"""HTTP client for the CoralBricks Memory API."""
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Literal, Optional
+from typing import Any, Dict, List, Optional
 
 import requests
 
@@ -71,14 +64,6 @@ class CoralBricksClient:
     # Store management
     # ------------------------------------------------------------------
 
-    def create_memory_store(self, store_name: str) -> Dict[str, Any]:
-        """Create a new memory store (TurboPuffer namespace).
-
-        Returns dict with store_name, namespace, and created flag.
-        Raises if the store already exists (HTTP 409).
-        """
-        return self._post("/v1/memory/stores", {"store_name": store_name})
-
     def get_or_create_memory_store(self, store_name: str) -> Dict[str, Any]:
         """Get an existing memory store or create it. Idempotent.
 
@@ -101,19 +86,25 @@ class CoralBricksClient:
         store_name: Optional[str] = None,
     ) -> str:
         """Store a memory item. Returns the new memory id."""
-        payload: Dict[str, Any] = {"text": text}
+        item: Dict[str, Any] = {"text": text}
+        if metadata is not None:
+            item["metadata"] = metadata
+
+        payload: Dict[str, Any] = {"items": [item]}
         if project_id is not None:
             payload["project_id"] = project_id
         if session_id is not None:
             payload["session_id"] = session_id
-        if metadata is not None:
-            payload["metadata"] = metadata
         if store_name is not None:
             payload["store"] = store_name
-        data = self._post("/store", payload)
-        mem_id = data.get("id")
+
+        data = self._post("/v1/memory/save", payload)
+        items = data.get("items")
+        if not isinstance(items, list) or len(items) == 0:
+            raise RuntimeError("CoralBricks /v1/memory/save did not return items")
+        mem_id = items[0].get("id")
         if not isinstance(mem_id, str):
-            raise RuntimeError("CoralBricks /store did not return an id")
+            raise RuntimeError("CoralBricks /v1/memory/save did not return an id")
         return mem_id
 
     def search(
@@ -134,11 +125,11 @@ class CoralBricksClient:
             payload["session_id"] = session_id
         if store_name is not None:
             payload["store"] = store_name
-        data = self._post("/search", payload)
-        results = data.get("results")
-        if not isinstance(results, list):
+        data = self._post("/v1/memory/query", payload)
+        hits = data.get("hits")
+        if not isinstance(hits, list):
             return []
-        return [r for r in results if isinstance(r, dict)]
+        return [h for h in hits if isinstance(h, dict)]
 
     def forget(
         self,
@@ -162,45 +153,3 @@ class CoralBricksClient:
         if store_name is not None:
             payload["store"] = store_name
         return self._post("/v1/memory/forget", payload)
-
-    # ------------------------------------------------------------------
-    # Chat history endpoints (LangChain-specific)
-    # ------------------------------------------------------------------
-
-    def append_chat(
-        self,
-        conversation_id: str,
-        role: Literal["user", "assistant", "system"],
-        content: str,
-        chunk_ids: Optional[List[str]] = None,
-    ) -> Dict[str, Any]:
-        """Append a message to a conversation via ``POST /v1/memory/chat``."""
-        if not conversation_id or not conversation_id.strip():
-            raise ValueError("conversation_id must be a non-empty string")
-        if role not in ("user", "assistant", "system"):
-            raise ValueError("role must be one of: user, assistant, system")
-        payload: Dict[str, Any] = {
-            "conversation_id": conversation_id,
-            "role": role,
-            "content": content,
-        }
-        if chunk_ids is not None:
-            payload["chunk_ids"] = chunk_ids
-        return self._post("/v1/memory/chat", payload)
-
-    def list_chat(
-        self,
-        conversation_id: str,
-        limit: int = 500,
-    ) -> List[Dict[str, Any]]:
-        """List messages for a conversation via ``GET /v1/memory/chat``."""
-        if not conversation_id or not conversation_id.strip():
-            raise ValueError("conversation_id must be a non-empty string")
-        data = self._get(
-            "/v1/memory/chat",
-            params={"conversation_id": conversation_id, "limit": limit},
-        )
-        messages = data.get("messages")
-        if not isinstance(messages, list):
-            return []
-        return [m for m in messages if isinstance(m, dict)]

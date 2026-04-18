@@ -1,10 +1,9 @@
 # coralbricks-langchain
 
-Use **CoralBricks** as the memory backend for your LangChain applications: retriever, chat history, agent memory tools, and RAG middleware — all backed by the CoralBricks Memory API.
+Use **CoralBricks** as the memory backend for your LangChain applications: retriever, agent memory tools, and RAG middleware — all backed by the CoralBricks Memory API.
 
 - Drop-in **`CoralBricksRetriever`** for any LCEL chain or RAG pipeline.
 - Three **agent tools** (`store`, `search`, `forget`) for persistent memory across turns.
-- **`CoralBricksChatMessageHistory`** — persistent chat history backed by the CoralBricks chat API.
 - **Memory stores** — each store gets a dedicated index. Share memory across agents via the same store name.
 
 ---
@@ -99,25 +98,6 @@ for doc in docs:
 
 ---
 
-## Chat message history
-
-Persistent chat history backed by the CoralBricks chat API:
-
-```python
-from coralbricks_langchain import CoralBricksMemory, CoralBricksChatMessageHistory
-
-memory = CoralBricksMemory(api_key="your_coralbricks_api_key")
-history = CoralBricksChatMessageHistory(client=memory.client, conversation_id="conv-001")
-
-history.add_user_message("Hello!")
-history.add_ai_message("Hi, how can I help?")
-
-for msg in history.messages:
-    print(msg.type, msg.content)
-```
-
----
-
 ## API reference
 
 ### `CoralBricksMemory`
@@ -126,7 +106,6 @@ for msg in history.messages:
 |--------|-------------|
 | `CoralBricksMemory(api_key, base_url?)` | Create memory instance (client created internally) |
 | `.get_or_create_memory_store(name)` | Attach to or create a dedicated memory store (idempotent) |
-| `.create_memory_store(name)` | Create a new store (raises if exists) |
 | `.set_project_id(id)` | Set project namespace |
 | `.set_session_id(id)` | Set session/user namespace |
 | `.save_memory(text, metadata?)` | Embed and store a memory item |
@@ -138,7 +117,6 @@ for msg in history.messages:
 | Symbol | Description |
 |--------|-------------|
 | `CoralBricksRetriever` | LangChain `BaseRetriever` for LCEL RAG pipelines |
-| `CoralBricksChatMessageHistory` | LangChain `BaseChatMessageHistory` backed by CoralBricks chat storage |
 | `get_tools(memory)` | Factory returning `[store, search, forget]` tools bound to a memory instance |
 
 ---

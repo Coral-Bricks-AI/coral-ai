@@ -43,8 +43,8 @@ from coralbricks_crewai import CoralBricksMemory
 
 memory = CoralBricksMemory(api_key="your_coralbricks_api_key")
 
-# Create (or reconnect to) a named memory store
-memory.create_memory_store("crewai:my-app")
+# Create (or reconnect to) a named memory store — idempotent, safe on every startup
+memory.get_or_create_memory_store("crewai:my-app")
 memory.set_session_id("conv-123")
 
 # Save a memory
@@ -60,13 +60,6 @@ for h in hits:
 
 # Forget memories by meaning
 memory.forget_memory("cancellation fee")
-```
-
-`get_or_create_memory_store()` is the idempotent alternative — safe to call on every startup:
-
-```python
-memory = CoralBricksMemory(api_key="your_coralbricks_api_key")
-memory.get_or_create_memory_store("crewai:my-app")
 ```
 
 ---
@@ -163,7 +156,6 @@ This pattern shows Coralbricks being used as **long‑term memory** across steps
 | Method | Description |
 |--------|-------------|
 | `CoralBricksMemory(api_key)` | Create a memory instance. |
-| `create_memory_store(name)` | Create a new dedicated store (TurboPuffer index). Raises if it already exists. |
 | `get_or_create_memory_store(name)` | Idempotent — attach to existing store or create it. Safe on every startup. |
 | `set_session_id(id)` | Scope operations to a conversation or user. |
 | `save_memory(text, metadata=None)` | Store a memory. Returns the memory id. |
