@@ -69,11 +69,7 @@ from coralbricks.context_prep.embedders import BaseEmbedder
 # checked-in HackerNews-style fixture that ships with
 # ``coralbricks-airbyte`` so this file runs out of the box in the monorepo.
 AIRBYTE_PATH = (
-    Path(__file__).resolve().parents[2]
-    / "integrations"
-    / "airbyte"
-    / "tests"
-    / "fixtures"
+    Path(__file__).resolve().parents[2] / "integrations" / "airbyte" / "tests" / "fixtures"
 )
 
 QUERY = "How did AAPL react to the Fed and which AI names moved with it?"
@@ -99,9 +95,7 @@ class _LocalSTEmbedder(BaseEmbedder):
         self._dim = int(self._model.get_sentence_embedding_dimension())
 
     def embed_texts(self, texts: list[str]) -> tuple[list[list[float]], dict]:
-        vecs = self._model.encode(
-            texts, normalize_embeddings=True, show_progress_bar=False
-        )
+        vecs = self._model.encode(texts, normalize_embeddings=True, show_progress_bar=False)
         return [v.tolist() for v in vecs], {}
 
     def get_model_name(self) -> str:
@@ -140,8 +134,7 @@ def _build_embedder() -> BaseEmbedder:
     try:
         emb = _LocalSTEmbedder()
         print(
-            f"[embedder] sentence-transformers: {emb.get_model_name()}  "
-            f"dim={emb.get_dimension()}"
+            f"[embedder] sentence-transformers: {emb.get_model_name()}  dim={emb.get_dimension()}"
         )
         return emb
     except Exception as exc:
@@ -161,8 +154,8 @@ def _build_embedder() -> BaseEmbedder:
 def _prep(work_dir: Path, embedder: BaseEmbedder) -> tuple[Path, Path, Path]:
     records = read_airbyte_output(
         AIRBYTE_PATH,
-        stream="stories",       # only files whose name contains "stories"
-        text_field="title",     # HN story row: searchable text = title
+        stream="stories",  # only files whose name contains "stories"
+        text_field="title",  # HN story row: searchable text = title
         id_field=lambda d: f"hn-{d['id']}",
     )
     print(f"[airbyte] read {len(records)} records from {AIRBYTE_PATH}")
@@ -190,9 +183,7 @@ def _prep(work_dir: Path, embedder: BaseEmbedder) -> tuple[Path, Path, Path]:
 # ---------------------------------------------------------------------------
 
 
-def _open_duckdb(
-    vec_path: Path, nodes_path: Path, edges_path: Path, dim: int
-) -> tuple[Any, bool]:
+def _open_duckdb(vec_path: Path, nodes_path: Path, edges_path: Path, dim: int) -> tuple[Any, bool]:
     import duckdb
 
     con = duckdb.connect()
@@ -208,9 +199,7 @@ def _open_duckdb(
     con.execute("CREATE TABLE edges AS SELECT * FROM read_parquet(?)", [str(edges_path)])
 
     con.execute("INSTALL vss; LOAD vss;")
-    con.execute(
-        "CREATE INDEX vec_hnsw ON vectors USING HNSW (vector) WITH (metric = 'cosine')"
-    )
+    con.execute("CREATE INDEX vec_hnsw ON vectors USING HNSW (vector) WITH (metric = 'cosine')")
 
     has_pgq = True
     try:
@@ -304,9 +293,7 @@ def main() -> None:
     work_dir = Path(tempfile.mkdtemp(prefix="cb_airbyte_rag_"))
     try:
         vec_path, nodes_path, edges_path = _prep(work_dir, embedder)
-        con, has_pgq = _open_duckdb(
-            vec_path, nodes_path, edges_path, dim=embedder.get_dimension()
-        )
+        con, has_pgq = _open_duckdb(vec_path, nodes_path, edges_path, dim=embedder.get_dimension())
 
         _hr(f"1. Vector top-K   query={QUERY!r}")
         qv, _ = embedder.embed_texts([QUERY])
