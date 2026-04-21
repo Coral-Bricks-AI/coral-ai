@@ -7,7 +7,7 @@ instead of a hardcoded Python list::
     Airbyte JSONL (Local JSON or S3 sync)
               │
               ▼
-    coralbricks.airbyte.read_airbyte_output()  ──► list[dict]
+    coralbricks.connectors.airbyte.read_airbyte_output()  ──► list[dict]
               │
               ▼
     chunk → embed → enrich → hydrate            (coralbricks.context_prep)
@@ -22,22 +22,23 @@ instead of a hardcoded Python list::
 Why this example exists
 -----------------------
 ``coralbricks-context-prep`` deliberately ships no file loaders. The
-companion package ``coralbricks-airbyte`` is the bridge — it reads
-Airbyte JSONL, strips the envelope, and returns records in the exact
-shape every ``context_prep`` verb already accepts. Everything after
-that is byte-for-byte identical to ``embedded_rag_duckdb.py``.
+companion package ``coralbricks-connectors`` is the bridge — its
+``coralbricks.connectors.airbyte`` submodule reads Airbyte JSONL,
+strips the envelope, and returns records in the exact shape every
+``context_prep`` verb already accepts. Everything after that is
+byte-for-byte identical to ``embedded_rag_duckdb.py``.
 
 Run
 ---
 ::
 
-    pip install -e integrations/airbyte
+    pip install -e integrations/connectors
     pip install -e 'context_prep[graph,chunkers]'
     pip install duckdb sentence-transformers
     python context_prep/examples/airbyte_rag.py
 
 By default this reads the checked-in HackerNews-style fixtures shipped
-with ``coralbricks-airbyte``. Point ``AIRBYTE_PATH`` at your own
+with ``coralbricks-connectors``. Point ``AIRBYTE_PATH`` at your own
 destination directory for a real run — Local JSON default root is
 ``/tmp/airbyte_local/<path>``; for S3, first
 ``aws s3 sync s3://bucket/prefix /tmp/ab-sync/``.
@@ -58,7 +59,7 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
-from coralbricks.airbyte import read_airbyte_output
+from coralbricks.connectors.airbyte import read_airbyte_output
 from coralbricks.context_prep import chunk, embed, enrich, hydrate
 from coralbricks.context_prep.embedders import BaseEmbedder
 
@@ -67,9 +68,14 @@ from coralbricks.context_prep.embedders import BaseEmbedder
 # ---------------------------------------------------------------------------
 # Point at your Airbyte destination directory. The default is the
 # checked-in HackerNews-style fixture that ships with
-# ``coralbricks-airbyte`` so this file runs out of the box in the monorepo.
+# ``coralbricks-connectors`` so this file runs out of the box in the monorepo.
 AIRBYTE_PATH = (
-    Path(__file__).resolve().parents[2] / "integrations" / "airbyte" / "tests" / "fixtures"
+    Path(__file__).resolve().parents[2]
+    / "integrations"
+    / "connectors"
+    / "airbyte"
+    / "tests"
+    / "fixtures"
 )
 
 QUERY = "How did AAPL react to the Fed and which AI names moved with it?"

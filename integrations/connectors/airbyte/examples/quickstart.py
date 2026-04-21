@@ -15,7 +15,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from coralbricks.airbyte import read_airbyte_output
+from coralbricks.connectors.airbyte import read_airbyte_output
 
 AIRBYTE_PATH = Path(__file__).resolve().parents[1] / "tests" / "fixtures"
 

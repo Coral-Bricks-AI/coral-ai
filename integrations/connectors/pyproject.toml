@@ -3,9 +3,9 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "coralbricks-airbyte"
-version = "0.1.0"
-description = "Read Airbyte destination output (Local JSON / S3 JSONL) into plain dict records for coralbricks.context_prep."
+name = "coralbricks-connectors"
+version = "0.2.0"
+description = "Data connectors for Coral Bricks: readers and ingestion helpers that turn external-source exports (Airbyte, PyAirbyte, …) into coralbricks.context_prep records."
 readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.10"
@@ -14,6 +14,7 @@ authors = [
 ]
 keywords = [
     "airbyte",
+    "connectors",
     "rag",
     "etl",
     "coralbricks",
@@ -40,20 +41,24 @@ dev = ["pytest>=8"]
 Homepage = "https://github.com/Coral-Bricks-AI/coral-ai"
 Repository = "https://github.com/Coral-Bricks-AI/coral-ai"
 Issues = "https://github.com/Coral-Bricks-AI/coral-ai/issues"
-Documentation = "https://github.com/Coral-Bricks-AI/coral-ai/tree/main/integrations/airbyte#readme"
-Changelog = "https://github.com/Coral-Bricks-AI/coral-ai/blob/main/integrations/airbyte/CHANGELOG.md"
+Documentation = "https://github.com/Coral-Bricks-AI/coral-ai/tree/main/integrations/connectors#readme"
+Changelog = "https://github.com/Coral-Bricks-AI/coral-ai/blob/main/integrations/connectors/CHANGELOG.md"
 
 # Flat source layout under the shared `coralbricks.*` PEP 420 namespace,
-# matching `coralbricks-context-prep`. See context_prep/pyproject.toml
-# for rationale.
+# matching `coralbricks-context-prep`. Each connector lives in its own
+# subdirectory and maps to a subpackage of `coralbricks.connectors`.
 [tool.setuptools]
-packages = ["coralbricks.airbyte"]
+packages = [
+    "coralbricks.connectors",
+    "coralbricks.connectors.airbyte",
+]
 
 [tool.setuptools.package-dir]
-"coralbricks.airbyte" = "."
+"coralbricks.connectors" = "."
+"coralbricks.connectors.airbyte" = "airbyte"
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+testpaths = ["airbyte/tests"]
 addopts = "-ra"
 
 [tool.ruff]

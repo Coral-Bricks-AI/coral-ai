@@ -2,7 +2,7 @@
 
 Public API::
 
-    from coralbricks.airbyte import read_airbyte_output
+    from coralbricks.connectors.airbyte import read_airbyte_output
 
     records = read_airbyte_output(
         "/tmp/airbyte_local/hackernews/",
@@ -18,4 +18,3 @@ from __future__ import annotations
 from .reader import read_airbyte_output
 
 __all__ = ["read_airbyte_output"]
-__version__ = "0.1.0"

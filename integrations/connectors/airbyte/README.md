@@ -1,23 +1,22 @@
-# coralbricks-airbyte
+# coralbricks.connectors.airbyte
 
-> Read Airbyte destination output into plain `list[dict]` records ready
-> for [`coralbricks-context-prep`](../../context_prep).
+> Airbyte reader submodule of
+> [`coralbricks-connectors`](../). Reads Airbyte destination output
+> into plain `list[dict]` records ready for
+> [`coralbricks-context-prep`](../../../context_prep).
 
-[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
-[![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](pyproject.toml)
-
-`coralbricks-airbyte` is the bridge between Airbyte — the 600+ connector
-catalog — and the Coral Bricks OSS data-prep libraries. It reads the
-JSONL files that Airbyte's Local JSON and S3 destinations write, and
-hands you dict records that plug straight into `chunk → embed → enrich
-→ hydrate`.
+`coralbricks.connectors.airbyte` is the bridge between Airbyte — the
+600+ connector catalog — and the Coral Bricks OSS data-prep libraries.
+It reads the JSONL files that Airbyte's Local JSON and S3 destinations
+write, and hands you dict records that plug straight into
+`chunk → embed → enrich → hydrate`.
 
 It is deliberately tiny: one function, zero hard dependencies, no state.
 
 ## Install
 
 ```bash
-pip install coralbricks-airbyte
+pip install coralbricks-connectors
 ```
 
 ## 30-second quickstart
@@ -27,7 +26,7 @@ at any source — HackerNews, Slack, Postgres, Google Drive — with a
 **Local JSON** or **S3 JSONL** destination. Then:
 
 ```python
-from coralbricks.airbyte import read_airbyte_output
+from coralbricks.connectors.airbyte import read_airbyte_output
 
 records = read_airbyte_output(
     "/tmp/airbyte_local/hackernews/",  # dir (recursively walked) or single .jsonl
@@ -47,7 +46,7 @@ chunks  = chunk(records, strategy="sliding_token", target_tokens=512)
 vectors = embed(chunks, model="openai:text-embedding-3-large")
 ```
 
-See [`context_prep/examples/airbyte_rag.py`](../../context_prep/examples/airbyte_rag.py)
+See [`context_prep/examples/airbyte_rag.py`](../../../context_prep/examples/airbyte_rag.py)
 for the full Airbyte → chunk → embed → enrich → hydrate → DuckDB vss +
 duckpgq retrieval demo.
 
@@ -95,7 +94,8 @@ keys as the source row.
   Compose, `abctl`, or Airbyte Cloud) that you configure independently.
 - **Read directly from S3.** Sync to local first
   (`aws s3 sync s3://bucket/prefix /tmp/ab/`) and point the reader at
-  the local directory. Native `s3://` support is a candidate for 0.2.0.
+  the local directory. Native `s3://` support is a candidate for a
+  future release.
 - **Parse Airbyte's Parquet or CSV destinations.** JSONL only — the
   lowest-common-denominator format every Airbyte destination supports.
 

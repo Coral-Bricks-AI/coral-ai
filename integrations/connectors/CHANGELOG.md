@@ -1,13 +1,37 @@
 # Changelog
 
-All notable changes to `coralbricks-airbyte` are documented here.
+All notable changes to `coralbricks-connectors` are documented here.
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [0.2.0] - 2026-04-21
+
+### Changed
+
+- **Package renamed** from `coralbricks-airbyte` to
+  `coralbricks-connectors`. The Airbyte reader moves under the
+  `coralbricks.connectors.airbyte` subpackage; the umbrella package is
+  now the home for all Coral Bricks data connectors (Airbyte today,
+  PyAirbyte + direct source readers next).
+
+### Migration
+
+```diff
+- pip install coralbricks-airbyte
++ pip install coralbricks-connectors
+
+- from coralbricks.airbyte import read_airbyte_output
++ from coralbricks.connectors.airbyte import read_airbyte_output
+```
+
+No behaviour changes. The reader API, dict shape, and fixture format
+are unchanged from 0.1.0.
 
 ## [0.1.0] - 2026-04-20
 
-Initial open-source release.
+Initial open-source release (as `coralbricks-airbyte`).
 
 ### Added
+
 - `read_airbyte_output()` — reads JSONL files from Airbyte's Local JSON
   and S3 destinations, yields `list[dict]` records in
   `coralbricks.context_prep`'s shape (`id`, `text`, `source`,
@@ -27,10 +51,3 @@ Initial open-source release.
 - Zero runtime dependencies (stdlib `json` only).
 - Unit tests and checked-in HackerNews-style JSONL fixtures
   exercising both envelope formats.
-
-### Layout
-
-- PyPI distribution: `coralbricks-airbyte`. Importable as
-  `coralbricks.airbyte`, part of the shared `coralbricks.*` PEP 420
-  namespace used by every Coral Bricks library and the closed-source
-  `coralbricks-platform` SDK.

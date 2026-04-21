@@ -1,4 +1,4 @@
-"""Tests for coralbricks.airbyte.read_airbyte_output."""
+"""Tests for coralbricks.connectors.airbyte.read_airbyte_output."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from coralbricks.airbyte import read_airbyte_output
+from coralbricks.connectors.airbyte import read_airbyte_output
 
 FIXTURES = Path(__file__).parent / "fixtures"
 
