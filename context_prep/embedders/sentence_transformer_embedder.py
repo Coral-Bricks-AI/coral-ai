@@ -1,7 +1,27 @@
 """Sentence Transformer embedder for benchmarking open-source models.
 
-Loads HuggingFace models from S3 (``s3://coralbricks-models/benchmark-models/``)
-and generates embeddings using the ``sentence-transformers`` library.
+Loads HuggingFace models for benchmarking with the
+``sentence-transformers`` library. By default, models are pulled
+straight from the HuggingFace Hub (so the OSS package works
+out-of-the-box for anyone with HF access -- no AWS account, no
+private bucket needed). An optional S3 mirror is supported for
+operators who want to pin model versions in their own account or
+avoid hitting the public Hub from an air-gapped environment.
+
+S3 mirror activation (all-or-nothing -- set both, or neither):
+
+- ``CORAL_BENCHMARK_MODELS_S3_BUCKET``: bucket name (e.g.
+  ``"my-org-models"``).
+- ``CORAL_BENCHMARK_MODELS_S3_PREFIX``: optional key prefix
+  (default: ``"benchmark-models/"``).
+
+Or pass ``s3_mirror_bucket=...`` directly to the constructor for
+programmatic control. When the mirror is configured we shell out to
+``aws s3 sync`` (so this path requires the AWS CLI on PATH plus
+working credentials in the boto3 default chain). When it isn't
+configured we let ``sentence-transformers`` handle the download via
+its built-in HF Hub support, which uses ``~/.cache/huggingface/`` by
+default.
 
 Supported models:
   - bge-m3: BGE-M3 (BAAI) | XLM-RoBERTa | 568M params | 1024 dim
@@ -25,8 +45,15 @@ _logger = logging.getLogger(__name__)
 
 from coralbricks.context_prep.embedders.base import BaseEmbedder
 
+# Each entry carries:
+# - ``hf_repo``: canonical HuggingFace repo id; used for the default
+#   (and only OSS-friendly) load path.
+# - ``s3_key``: subpath under the operator-configured mirror bucket;
+#   only consulted when the S3 mirror is explicitly enabled.
+# - dimension / prefix / description: model behaviour metadata.
 MODELS = {
     "bge-m3": {
+        "hf_repo": "BAAI/bge-m3",
         "s3_key": "benchmark-models/bge-m3/",
         "dimension": 1024,
         "query_prefix": "",
@@ -38,6 +65,7 @@ MODELS = {
         ),
     },
     "snowflake-arctic-embed-m-v2.0": {
+        "hf_repo": "Snowflake/snowflake-arctic-embed-m-v2.0",
         "s3_key": "benchmark-models/snowflake-arctic-embed-m-v2.0/",
         "dimension": 768,
         "query_prefix": "",
@@ -48,6 +76,7 @@ MODELS = {
         ),
     },
     "nomic-embed-v2-moe": {
+        "hf_repo": "nomic-ai/nomic-embed-text-v2-moe",
         "s3_key": "benchmark-models/nomic-embed-v2-moe/",
         "dimension": 768,
         "query_prefix": "search_query: ",
@@ -59,7 +88,33 @@ MODELS = {
     },
 }
 
-S3_BUCKET = "coralbricks-models"
+_S3_BUCKET_ENV = "CORAL_BENCHMARK_MODELS_S3_BUCKET"
+_S3_PREFIX_ENV = "CORAL_BENCHMARK_MODELS_S3_PREFIX"
+_DEFAULT_S3_PREFIX = "benchmark-models/"
+
+
+def _resolve_s3_mirror(
+    explicit_bucket: str | None,
+    explicit_prefix: str | None,
+) -> tuple[str, str] | None:
+    """Decide whether the S3 mirror is active and return ``(bucket, prefix)``.
+
+    Returns ``None`` when no mirror is configured (the default OSS
+    case -- we'll load straight from HuggingFace Hub). Constructor
+    args take precedence over env vars so notebooks / scripts can
+    override deploy-time defaults locally.
+    """
+    bucket = explicit_bucket or (os.environ.get(_S3_BUCKET_ENV) or "").strip() or None
+    if not bucket:
+        return None
+    prefix = (
+        explicit_prefix
+        or (os.environ.get(_S3_PREFIX_ENV) or "").strip()
+        or _DEFAULT_S3_PREFIX
+    )
+    if prefix and not prefix.endswith("/"):
+        prefix = prefix + "/"
+    return bucket, prefix
 
 
 def _merge_tokenized_features(
@@ -107,10 +162,13 @@ def _merge_tokenized_features(
 
 
 class SentenceTransformerEmbedder(BaseEmbedder):
-    """Embedder for HuggingFace sentence-transformer models stored in S3.
+    """Embedder for HuggingFace sentence-transformer models.
 
-    Downloads the model from S3 to a local cache, then uses the
-    ``sentence-transformers`` library for GPU-accelerated inference.
+    Default load path is the HuggingFace Hub via the
+    ``sentence-transformers`` library, which caches under
+    ``~/.cache/huggingface/``. Operators can opt into a private S3
+    mirror by setting ``CORAL_BENCHMARK_MODELS_S3_BUCKET`` (or
+    passing ``s3_mirror_bucket=...``); see the module docstring.
 
     NOTE: For local GPU models, use ``--workers 1`` when calling
     ``embed/main.py``. Multiple workers create contention on the GPU
@@ -127,6 +185,8 @@ class SentenceTransformerEmbedder(BaseEmbedder):
         use_fp16: bool = False,
         tokenize_processes: int = 0,
         max_seq_length: int | None = None,
+        s3_mirror_bucket: str | None = None,
+        s3_mirror_prefix: str | None = None,
     ):
         if model_name not in MODELS:
             raise ValueError(
@@ -150,7 +210,10 @@ class SentenceTransformerEmbedder(BaseEmbedder):
         self.cache_dir = Path(cache_dir)
         self.cache_dir.mkdir(parents=True, exist_ok=True)
 
-        local_path = self._ensure_local(model_name)
+        self._s3_mirror = _resolve_s3_mirror(s3_mirror_bucket, s3_mirror_prefix)
+        # Either a local path (S3 mirror was synced) or an HF repo id;
+        # SentenceTransformer accepts both transparently.
+        model_ref = self._resolve_model_ref(model_name)
 
         import torch
         from sentence_transformers import SentenceTransformer
@@ -178,13 +241,13 @@ class SentenceTransformerEmbedder(BaseEmbedder):
                     pass
 
         print(f"Loading SentenceTransformer model: {model_name}")
-        print(f"  Local path: {local_path}")
+        print(f"  Source: {model_ref}")
         print(f"  Device: {device}")
         print(f"  Input type: {input_type}")
         if self.prefix:
             print(f"  Prefix: '{self.prefix}'")
 
-        self.model = SentenceTransformer(str(local_path), device=device, trust_remote_code=True)
+        self.model = SentenceTransformer(model_ref, device=device, trust_remote_code=True)
 
         if max_seq_length is not None:
             cap = int(max_seq_length)
@@ -195,8 +258,40 @@ class SentenceTransformerEmbedder(BaseEmbedder):
         print(f"  Dimension: {self.model.get_sentence_embedding_dimension()}")
         print("  Model loaded")
 
-    def _ensure_local(self, model_name: str) -> Path:
-        """Download model from S3 if not already cached; return local path."""
+    def _resolve_model_ref(self, model_name: str) -> str:
+        """Return the load reference (local path or HF repo id) for ``model_name``.
+
+        - With an S3 mirror configured: sync into the local cache and
+          return the local path. This preserves the air-gap-friendly
+          flow for operators who don't want runtime traffic to HF.
+        - Without a mirror: return the HF repo id and let
+          ``sentence-transformers`` fetch + cache it via HF Hub. This
+          is the default and works for any OSS user with internet
+          access.
+        """
+        if self._s3_mirror is not None:
+            return str(self._sync_from_s3(model_name))
+
+        hf_repo = self.model_info.get("hf_repo")
+        if not hf_repo:
+            raise ValueError(
+                f"Model {model_name!r} has no `hf_repo` registered and no "
+                f"S3 mirror configured. Set ${_S3_BUCKET_ENV} to point at a "
+                f"private mirror, or add a `hf_repo` to MODELS[{model_name!r}]."
+            )
+        return hf_repo
+
+    def _sync_from_s3(self, model_name: str) -> Path:
+        """Mirror the model down from the configured S3 bucket.
+
+        Only invoked when the operator explicitly opts into the S3
+        path. Uses ``aws s3 sync`` (rather than boto3 calls) because
+        sentence-transformer model directories contain many files
+        and the CLI handles parallelism + resume natively.
+        """
+        assert self._s3_mirror is not None  # narrowed by caller
+        bucket, prefix = self._s3_mirror
+
         local_dir = self.cache_dir / model_name
         marker = local_dir / ".download_complete"
 
@@ -204,7 +299,17 @@ class SentenceTransformerEmbedder(BaseEmbedder):
             print(f"  Using cached model: {local_dir}")
             return local_dir
 
-        s3_uri = f"s3://{S3_BUCKET}/{self.model_info['s3_key']}"
+        # The s3_key may already start with the configured prefix
+        # (legacy layout) or be a clean model-relative path; both
+        # work because S3 ignores the difference between
+        # ``benchmark-models/bge-m3/`` and ``bge-m3/`` once joined
+        # under a matching prefix.
+        s3_key = self.model_info["s3_key"].lstrip("/")
+        if s3_key.startswith(prefix):
+            s3_path = s3_key
+        else:
+            s3_path = prefix + s3_key
+        s3_uri = f"s3://{bucket}/{s3_path}"
         print(f"  Downloading model from {s3_uri} ...")
         local_dir.mkdir(parents=True, exist_ok=True)
 

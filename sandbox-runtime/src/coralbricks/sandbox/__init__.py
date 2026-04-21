@@ -29,7 +29,7 @@ in the closed-source platform repo for the full architecture.
 
 from __future__ import annotations
 
-from . import cancel_event, llm, tools
+from . import cancel_event, llm, py_executor, tools
 from ._rpc import (
     DEFAULT_RPC_TIMEOUT_S,
     RpcCallError,
@@ -38,11 +38,23 @@ from ._rpc import (
     RpcProtocolError,
     SOCKET_ENV_VAR,
 )
+from .py_executor import (
+    PyExecutionError,
+    PyExecutor,
+    PyResult,
+    PyTimeoutError,
+    PyValidationError,
+)
 
 __version__ = "0.1.0"
 
 __all__ = [
     "DEFAULT_RPC_TIMEOUT_S",
+    "PyExecutionError",
+    "PyExecutor",
+    "PyResult",
+    "PyTimeoutError",
+    "PyValidationError",
     "RpcCallError",
     "RpcConnectError",
     "RpcError",
@@ -51,5 +63,6 @@ __all__ = [
     "__version__",
     "cancel_event",
     "llm",
+    "py_executor",
     "tools",
 ]
