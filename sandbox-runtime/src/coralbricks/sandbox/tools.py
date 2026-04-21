@@ -148,6 +148,7 @@ def bm25(
     query: str,
     k: int = 10,
     fields: Optional[Sequence[str]] = None,
+    filters: Optional[Mapping[str, Any]] = None,
     socket_path: Optional[str] = None,
     timeout_s: float = _rpc.DEFAULT_RPC_TIMEOUT_S,
 ) -> dict[str, Any]:
@@ -157,7 +158,8 @@ def bm25(
     gateway resolves it to the right OpenSearch endpoint + per-index
     BM25 field config. Pass ``fields`` to override the registered
     defaults (``["title^3", "body^2"]`` etc.); omit to use the
-    registration's settings.
+    registration's settings. ``filters`` is an optional pre-filter
+    clause (OpenSearch DSL shape; passed through verbatim).
 
     Returns ``{"index": "<slug>", "hits": [{"id", "score",
     "source"}, ...]}``. ``k`` is clamped server-side to the index's
@@ -170,6 +172,8 @@ def bm25(
     }
     if fields is not None:
         params["fields"] = list(fields)
+    if filters is not None:
+        params["filters"] = dict(filters)
     return _rpc.call(
         "tools.bm25",
         params=params,
