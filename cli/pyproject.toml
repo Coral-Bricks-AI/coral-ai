@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "coralbricks"
-version = "0.1.0"
-description = "Pip-installable CLI for Coral Bricks AI: connect data sources and run Airbyte sync locally, write to managed S3."
+version = "0.1.2"
+description = "Coral Bricks CLI — connect data sources and run syncs locally into managed storage."
 readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.10"
@@ -13,9 +13,9 @@ authors = [
     {name = "Coral Bricks AI", email = "eng@coralbricks.ai"},
 ]
 keywords = [
-    "airbyte",
     "cli",
     "data-integration",
+    "connectors",
     "rag",
     "etl",
     "coralbricks",

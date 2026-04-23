@@ -1,7 +1,7 @@
 # coralbricks
 
-> Pip-installable CLI for Coral Bricks AI — connect data sources from any
-> of 600+ Airbyte connectors and run syncs on your own machine.
+> Pip-installable CLI for Coral Bricks AI — connect 600+ data sources and
+> run syncs on your own machine, straight into managed storage.
 
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](pyproject.toml)
@@ -15,25 +15,20 @@ pip install coralbricks
 ```bash
 coralbricks login             # paste an API key from coralbricks.ai/settings/api-keys
 coralbricks sources           # list available connectors
-coralbricks connect notion    # OAuth in your browser (coming in v0.2)
-coralbricks sync <id>         # pull Airbyte Docker, write JSONL to managed S3 (coming in v0.2)
+coralbricks connect notion    # OAuth in your browser, or prompt for an API key
+coralbricks connections       # list what you've connected
 ```
 
-## Status
-
-**v0.1 (current, work-in-progress)** ships the auth + discovery surface:
+## Commands
 
 | Command | What it does |
 | --- | --- |
 | `coralbricks login` | Prompts for an API key (or `--api-key ak_…`), validates against the backend, stores in `~/.coralbricks/config.json` (mode 0600) |
 | `coralbricks logout` | Removes the stored API key |
-| `coralbricks whoami` | Re-validates the stored key and prints user id / email |
+| `coralbricks whoami` | Re-validates the stored key and prints the logged-in user |
 | `coralbricks sources` | Lists connectors available on your account (name, auth type) |
+| `coralbricks connect <source>` | Connects a data source — OAuth in the browser (loopback pattern) or interactive API-key prompts. One connection per source; re-running refreshes credentials in place. |
 | `coralbricks connections` | Lists the connections you've already set up |
-
-**v0.2 (in progress)** — `coralbricks connect <source>` with browser-brokered OAuth loopback and API-key prompts.
-
-**v0.3 (in progress)** — `coralbricks sync <id>` runs the source's Airbyte Docker image on your laptop and uploads JSONL to our managed S3 bucket using scoped STS credentials.
 
 ## Configuration
 
