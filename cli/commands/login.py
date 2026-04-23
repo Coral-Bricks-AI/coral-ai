@@ -30,6 +30,27 @@ def login_cmd(api_key: str | None, server_url: str | None) -> None:
     if server_url:
         cfg.server_url = server_url.rstrip("/")
 
+    # Already-logged-in short-circuit. Surface the current identity and
+    # offer an inline switch so users don't have to chain logout+login.
+    # Skipped when --api-key is passed explicitly (power-user override).
+    if not api_key and cfg.effective_api_key():
+        click.echo()
+        tui.ok(
+            "Already logged in as "
+            + click.style(cfg.email or "unknown", fg="cyan", bold=True)
+            + "."
+        )
+        click.echo()
+        if not click.confirm(
+            click.style("  Switch account?", fg="white"), default=False
+        ):
+            return
+        cfg_mod.clear()
+        cfg = cfg_mod.load()
+        if server_url:
+            cfg.server_url = server_url.rstrip("/")
+        click.echo()
+
     if not api_key:
         click.echo(click.style("Coral Bricks", bold=True, fg="cyan"))
         click.echo(
