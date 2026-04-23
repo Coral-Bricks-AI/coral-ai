@@ -131,12 +131,7 @@ def test_connections_renders_table(mocked_responses):
             "success": True,
             "data": {
                 "connections": [
-                    {
-                        "id": 7,
-                        "sourceId": "notion",
-                        "status": "active",
-                        "externalAccountLabel": "my-workspace",
-                    }
+                    {"id": 7, "sourceId": "notion", "status": "active"}
                 ]
             },
         },
@@ -145,8 +140,10 @@ def test_connections_renders_table(mocked_responses):
     result = runner.invoke(cli, ["connections"])
     assert result.exit_code == 0, result.output
     assert "notion" in result.output
-    assert "my-workspace" in result.output
     assert "active" in result.output
+    # IDs must never leak into user-facing output.
+    assert "#7" not in result.output
+    assert " 7 " not in result.output
 
 
 def test_logout_removes_config():

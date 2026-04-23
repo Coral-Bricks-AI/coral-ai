@@ -13,8 +13,7 @@ from ..api import ApiError, AuthError, Client
 
 @click.command("connections")
 @click.option("--json", "as_json", is_flag=True, help="Output raw JSON instead of a table.")
-@click.option("--ids", is_flag=True, help="Include numeric connection IDs in the output.")
-def connections_cmd(as_json: bool, ids: bool) -> None:
+def connections_cmd(as_json: bool) -> None:
     """List your active data source connections."""
     cfg = cfg_mod.load()
     client = Client(cfg)
@@ -45,22 +44,15 @@ def connections_cmd(as_json: bool, ids: bool) -> None:
         return
 
     click.secho(f"Your connections ({len(items)})", bold=True)
-    headers = ["source", "label", "status"]
-    if ids:
-        headers = ["id", *headers]
-
     rows = []
     for c in items:
         source = click.style(c.get("sourceId", "?"), fg="cyan")
-        label = c.get("externalAccountLabel") or click.style("—", dim=True)
         status_val = c.get("status") or "unknown"
         status = f"{tui.status_dot(status_val)} {status_val}"
-        row = [source, label, status]
-        if ids:
-            row = [click.style(str(c.get("id", "")), dim=True), *row]
-        rows.append(row)
+        last_sync = c.get("lastSyncAt") or click.style("never", dim=True)
+        rows.append([source, status, last_sync])
 
-    tui.table(rows, headers=headers)
+    tui.table(rows, headers=["source", "status", "last sync"])
     click.echo()
     tui.hint("Sync now:     coralbricks sync <source>")
     click.echo()
