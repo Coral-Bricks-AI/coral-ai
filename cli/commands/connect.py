@@ -18,8 +18,10 @@ duplicate is ever created.
 
 from __future__ import annotations
 
+import re
 import webbrowser
 from typing import Any
+from urllib.parse import quote, urlparse
 
 import click
 
@@ -27,6 +29,11 @@ from .. import config as cfg_mod
 from .. import tui
 from ..api import ApiError, AuthError, Client
 from ..oauth import LoopbackServer
+
+# sourceIds are registry keys controlled by our backend — lowercase letters,
+# digits, hyphens, underscores. We enforce it client-side so a typo like
+# `../admin` is rejected locally before it ever hits the wire.
+_SOURCE_ID_RE = re.compile(r"^[a-z0-9][a-z0-9_\-]{0,63}$")
 
 
 @click.command("connect")
@@ -45,6 +52,11 @@ from ..oauth import LoopbackServer
 )
 def connect_cmd(source_id: str, no_browser: bool, assume_yes: bool) -> None:
     """Connect a data source (OAuth or API key)."""
+    if not _SOURCE_ID_RE.match(source_id):
+        raise click.ClickException(
+            f"Invalid source id: {source_id!r}. Use lowercase letters, digits, '-' or '_'."
+        )
+
     cfg = cfg_mod.load()
     client = Client(cfg)
 
@@ -156,7 +168,7 @@ def _connect_oauth(
         body: dict[str, Any] = {"cliLoopback": loopback.url}
 
         try:
-            resp = client.post(f"/cli/v1/connect/{source_id}", json=body)
+            resp = client.post(f"/cli/v1/connect/{quote(source_id, safe='')}", json=body)
         except AuthError as e:
             raise click.ClickException(e.message) from e
         except ApiError as e:
@@ -165,6 +177,12 @@ def _connect_oauth(
         auth_url = resp.get("authUrl") if isinstance(resp, dict) else None
         if not auth_url:
             raise click.ClickException("Backend did not return an authUrl.")
+        # Defensive: never hand webbrowser.open a non-http(s) URL. Guards
+        # against a compromised/MITM'd backend smuggling `file://`,
+        # `javascript:`, or other schemes through the authUrl.
+        scheme = urlparse(auth_url).scheme.lower()
+        if scheme not in ("http", "https"):
+            raise click.ClickException(f"Backend returned an unsafe authUrl scheme: {scheme!r}")
 
         tui.hint(f"Loopback listening on {loopback.url}")
         if not no_browser:
@@ -216,7 +234,7 @@ def _connect_api_key(
         body["config"] = config
 
     try:
-        resp = client.post(f"/cli/v1/connect/{source_id}", json=body)
+        resp = client.post(f"/cli/v1/connect/{quote(source_id, safe='')}", json=body)
     except AuthError as e:
         raise click.ClickException(e.message) from e
     except ApiError as e:
