@@ -14,7 +14,7 @@ from .commands.sources import sources_cmd
 @click.group(context_settings={"help_option_names": ["-h", "--help"]})
 @click.version_option(__version__, prog_name="coralbricks")
 def cli() -> None:
-    """Coral Bricks — connect data sources and run Airbyte sync locally."""
+    """Coral Bricks — connect data sources and run syncs locally into managed storage."""
 
 
 cli.add_command(login_cmd)
