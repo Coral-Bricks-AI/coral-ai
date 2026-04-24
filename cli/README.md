@@ -16,7 +16,9 @@ pip install coralbricks
 coralbricks login             # paste an API key from coralbricks.ai/settings/api-keys
 coralbricks sources           # list available connectors
 coralbricks connect notion    # OAuth in your browser, or prompt for an API key
+coralbricks sync notion       # pull Airbyte image, run locally, upload to managed S3
 coralbricks connections       # list what you've connected
+coralbricks runs notion       # recent sync history for this source
 ```
 
 ## Commands
@@ -28,7 +30,10 @@ coralbricks connections       # list what you've connected
 | `coralbricks whoami` | Re-validates the stored key and prints the logged-in user |
 | `coralbricks sources` | Lists connectors available on your account (name, auth type) |
 | `coralbricks connect <source>` | Connects a data source — OAuth in the browser (loopback pattern) or interactive API-key prompts. One connection per source; re-running refreshes credentials in place. |
+| `coralbricks disconnect <source>` | Removes a previously-configured connection for a source. Prompts for confirmation (use `-y` to skip). |
+| `coralbricks sync <source>` | Pulls the Airbyte source Docker image, runs it on your machine, and uploads records (gzipped JSONL, raw Airbyte Protocol shape) to our managed S3. Credentials are STS session creds scoped to exactly this run's prefix for 1 hour. Requires Docker Desktop / Engine running. |
 | `coralbricks connections` | Lists the connections you've already set up |
+| `coralbricks runs <source>` | Shows recent sync runs for a source (status, records, bytes, timestamp). |
 
 ## Configuration
 
@@ -36,6 +41,7 @@ coralbricks connections       # list what you've connected
 | --- | --- | --- |
 | `CORALBRICKS_API_KEY` | Overrides the stored key (useful in CI) | — |
 | `CORALBRICKS_SERVER_URL` | Override the backend URL | `https://backend.coralbricks.ai` |
+| `CORALBRICKS_ALLOWED_BUCKETS` | Comma-separated S3 buckets the CLI will accept as a sync destination. Defaults to the prod managed bucket; set this only if you're testing against a non-prod backend. | `coralbricks-connectors` |
 
 ## Development
 

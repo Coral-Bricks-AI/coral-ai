@@ -11,6 +11,8 @@ from collections.abc import Iterable, Sequence
 
 import click
 
+from .logo import LOGO_ICON_ANSI, WORDMARK_RGB
+
 CHECK = "✓"
 CROSS = "✗"
 BULLET = "●"
@@ -63,6 +65,34 @@ def heading(msg: str) -> None:
     click.echo()
     click.secho(msg, bold=True, fg="white")
     click.echo(click.style(RULE * max(len(msg), 8), dim=True))
+
+
+# Logomark rendered from webapp/public/logo-icon.svg via chafa. The ANSI
+# lines include trailing resets, so we can safely append plain text after.
+# Rows 4 & 5 host the wordmark + tagline; everything else prints bare.
+_BANNER_WORDMARK_ROW = 3
+_BANNER_TAGLINE_ROW = 4
+
+
+def banner(tagline: str | None = "connect 600+ data sources") -> None:
+    """Print the coralbricks logomark + wordmark side-by-side.
+
+    The text half of the marketing asset (`logo-with-text.svg`) doesn't
+    rasterize legibly below ~120 terminal columns, so we render only the
+    icon and typeset "CoralBricks" natively in the same coral RGB.
+    """
+    indent = "  "
+    gap = "   "
+    logo_lines = LOGO_ICON_ANSI.rstrip("\n").split("\n")
+    click.echo()
+    for i, logo_line in enumerate(logo_lines):
+        suffix = ""
+        if i == _BANNER_WORDMARK_ROW:
+            suffix = gap + click.style("CoralBricks", bold=True, fg=WORDMARK_RGB)
+        elif i == _BANNER_TAGLINE_ROW and tagline:
+            suffix = gap + click.style(tagline, dim=True)
+        click.echo(indent + logo_line + suffix)
+    click.echo()
 
 
 def kv(pairs: Iterable[tuple[str, object]], *, indent: int = 2) -> None:

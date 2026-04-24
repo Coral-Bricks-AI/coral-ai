@@ -246,7 +246,7 @@ def _connect_api_key(
 
 def _print_connected(source_id: str, *, reconnected: bool) -> None:
     verb = "Reconnected" if reconnected else "Connected"
-    click.echo()
+    tui.banner(tagline=f"{verb.lower()} {source_id}")
     tui.ok(f"{verb} " + click.style(source_id, fg="cyan", bold=True))
     if reconnected:
         click.secho("  credentials refreshed in place", dim=True)

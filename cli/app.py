@@ -7,8 +7,11 @@ import click
 from . import __version__
 from .commands.connect import connect_cmd
 from .commands.connections import connections_cmd
+from .commands.disconnect import disconnect_cmd
 from .commands.login import login_cmd, logout_cmd, whoami_cmd
+from .commands.runs import runs_cmd
 from .commands.sources import sources_cmd
+from .commands.sync import sync_cmd
 
 
 @click.group(context_settings={"help_option_names": ["-h", "--help"]})
@@ -23,6 +26,9 @@ cli.add_command(whoami_cmd)
 cli.add_command(sources_cmd)
 cli.add_command(connect_cmd)
 cli.add_command(connections_cmd)
+cli.add_command(disconnect_cmd)
+cli.add_command(sync_cmd)
+cli.add_command(runs_cmd)
 
 
 def main() -> None:

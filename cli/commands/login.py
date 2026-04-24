@@ -81,7 +81,7 @@ def login_cmd(api_key: str | None, server_url: str | None) -> None:
     server = cfg.effective_server_url()
     custom_server = server.rstrip("/") != cfg_mod.DEFAULT_SERVER_URL.rstrip("/")
 
-    click.echo()
+    tui.banner()
     tui.ok(
         "Welcome to Coral Bricks, "
         + click.style(cfg.email or "friend", fg="cyan", bold=True)
