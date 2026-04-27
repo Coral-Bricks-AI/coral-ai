@@ -14,8 +14,8 @@ from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
-from coralbricks.cli import runner
-from coralbricks.cli.runner import (
+from coralbricks.sync_core import runner
+from coralbricks.sync_core.runner import (
     ReadHandlers,
     RunnerError,
     build_configured_catalog,

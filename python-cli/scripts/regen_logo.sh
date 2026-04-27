@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Regenerate cli/logo.py from Coralbricks/webapp/public/logo-icon.svg.
+# Regenerate python-cli/logo.py from Coralbricks/webapp/public/logo-icon.svg.
 #
 # Requires: rsvg-convert (librsvg), chafa, perl, python3.
 #   brew install librsvg chafa
 #
-# Run from anywhere. Writes cli/logo.py in place.
+# Run from anywhere. Writes python-cli/logo.py in place.
 #
 # Flags worth keeping aligned:
 # - --colors full: truecolor so the coral fill (#d44027) round-trips exactly

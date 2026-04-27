@@ -1,9 +1,11 @@
 """Per-run gzipped JSONL uploader to Coral Bricks' managed S3 bucket.
 
 One writer per sync run. Gzip buffer per stream in memory; flushed to
-`{bucket}/{prefix}/{stream}/part-0000.jsonl.gz` on close(). Credentials
-come from the `/cli/v1/runs` response — they're STS session creds whose
-IAM policy is pinned to exactly `{prefix}/*` for 1 hour.
+`{bucket}/{prefix}/{stream}/part-0000.jsonl.gz` on close().
+
+Credentials are passed in by the caller. The CLI passes STS session
+creds whose IAM policy is pinned to exactly `{prefix}/*` for 1 hour.
+The ECS supervisor passes None and relies on the task IAM role.
 
 Record shape written: the inner Airbyte Protocol RECORD payload,
 verbatim — `{stream, data, emitted_at}` — so downstream consumers parse
@@ -32,9 +34,12 @@ class StsCredentials:
 class ScopedS3Writer:
     """Buffer raw Airbyte records per stream, gzip, upload on close.
 
-    Resource use is O(records × record-size) until close() — fine for the
-    conference-demo connector sizes (tens of MB per stream). Rotating to
-    multiple parts per stream is future work.
+    Resource use is O(records × record-size) until close() — fine for
+    typical connector sizes (tens of MB per stream). Rotating to multiple
+    parts per stream is future work.
+
+    `sts=None` falls back to the ambient AWS session (e.g. ECS task IAM
+    role); pass `StsCredentials` to use temporary session credentials.
     """
 
     def __init__(
@@ -42,7 +47,7 @@ class ScopedS3Writer:
         *,
         bucket: str,
         key_prefix: str,
-        sts: StsCredentials,
+        sts: StsCredentials | None = None,
         region: str = "us-east-1",
     ) -> None:
         self.bucket = bucket
@@ -89,20 +94,23 @@ class ScopedS3Writer:
         """Flush all streams to S3. Returns an upload summary.
 
         Shape: `{records, bytes, streams: {stream: {records, bytes, key}}}`.
-        The totals go back to the backend `/complete` endpoint; the per-
-        stream breakdown is printed to the user.
+        Totals go to the backend `/complete` endpoint; the per-stream
+        breakdown is shown to the user.
         """
         if self._closed:
             raise RuntimeError("ScopedS3Writer.close() called twice")
         self._closed = True
 
-        client = boto3.client(
-            "s3",
-            region_name=self.region,
-            aws_access_key_id=self._sts.access_key_id,
-            aws_secret_access_key=self._sts.secret_access_key,
-            aws_session_token=self._sts.session_token,
-        )
+        if self._sts is not None:
+            client = boto3.client(
+                "s3",
+                region_name=self.region,
+                aws_access_key_id=self._sts.access_key_id,
+                aws_secret_access_key=self._sts.secret_access_key,
+                aws_session_token=self._sts.session_token,
+            )
+        else:
+            client = boto3.client("s3", region_name=self.region)
 
         summary: dict[str, Any] = {"records": 0, "bytes": 0, "streams": {}}
         for stream, gz in self._gzippers.items():

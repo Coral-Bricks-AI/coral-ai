@@ -18,7 +18,7 @@ from click.testing import CliRunner
 from coralbricks.cli import config as cfg_mod
 from coralbricks.cli.app import cli
 from coralbricks.cli.commands import sync as sync_mod
-from coralbricks.cli.runner import DiscoverResult, RunStats
+from coralbricks.sync_core.runner import DiscoverResult, RunStats
 
 BACKEND = "http://backend.test"
 
@@ -94,7 +94,7 @@ def _stub_runner(monkeypatch, *, records: list[tuple[str, dict[str, Any], int]],
             uploaded[f"{Bucket}/{Key}"] = Body
             return {"ETag": '"fake"'}
 
-    import coralbricks.cli.s3 as s3_mod
+    import coralbricks.sync_core.s3 as s3_mod
 
     monkeypatch.setattr(s3_mod, "boto3", MagicMock(client=MagicMock(return_value=_FakeS3())))
     return uploaded

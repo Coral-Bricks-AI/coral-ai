@@ -33,7 +33,7 @@ import click
 from .. import config as cfg_mod
 from .. import tui
 from ..api import ApiError, AuthError, Client
-from ..runner import (
+from coralbricks.sync_core.runner import (
     ReadHandlers,
     RunnerError,
     build_configured_catalog,
@@ -42,7 +42,7 @@ from ..runner import (
     pull_image,
     run_read,
 )
-from ..s3 import ScopedS3Writer, StsCredentials
+from coralbricks.sync_core.s3 import ScopedS3Writer, StsCredentials
 
 _SOURCE_ID_RE = re.compile(r"^[a-z0-9][a-z0-9_\-]{0,63}$")
 _ALLOWED_IMAGE_PREFIX = "airbyte/"

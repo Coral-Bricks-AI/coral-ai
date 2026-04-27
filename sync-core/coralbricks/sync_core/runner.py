@@ -1,9 +1,9 @@
 """Airbyte source Docker runner.
 
 Pulls an Airbyte source image and invokes its protocol commands
-(`check`, `discover`, `read`) locally on the user's machine. Follows
-the Airbyte Protocol Docker contract: one container per invocation,
-newline-delimited JSON on stdout, logs on stderr.
+(`check`, `discover`, `read`). Follows the Airbyte Protocol Docker
+contract: one container per invocation, newline-delimited JSON on
+stdout, logs on stderr.
 
 Mount point is `/config` (not `/airbyte`). The Airbyte Platform itself
 uses `/config/` for the exact same reason we do: every Airbyte source
@@ -13,9 +13,9 @@ to init ("mkdir /airbyte/integration_code: read-only file system").
 
 See: https://docs.airbyte.com/platform/understanding-airbyte/airbyte-protocol-docker
 
-This module is deliberately free of backend/S3 concerns — Day 2 of M3
-runs the full pull→discover→read loop locally before any upload path
-is wired in. Higher layers (commands/sync.py, s3.py) compose it.
+This module is deliberately free of backend/S3 concerns — higher layers
+compose it. The CLI uses it directly via docker.from_env(); the ECS
+supervisor uses the same parser against a CloudWatch log stream.
 """
 
 from __future__ import annotations
@@ -52,7 +52,7 @@ MSG_SPEC = "SPEC"
 
 
 class RunnerError(Exception):
-    """Anything we surface to the CLI user as an Airbyte / Docker failure."""
+    """Anything we surface to the user as an Airbyte / Docker failure."""
 
 
 @dataclass
@@ -222,7 +222,12 @@ def _run_protocol_command(
                 container.remove(force=True)
 
 
-def _parse_message(line: str) -> AirbyteMessage | None:
+def parse_message(line: str) -> AirbyteMessage | None:
+    """Parse a single Airbyte Protocol JSON line.
+
+    Returns None for non-JSON or non-message lines. Real sources occasionally
+    print non-JSON banners before the protocol kicks in.
+    """
     try:
         payload = json.loads(line)
     except json.JSONDecodeError:
@@ -262,7 +267,7 @@ def discover_streams(
 
     def on_line(text: str) -> None:
         nonlocal catalog_payload, trace_error
-        msg = _parse_message(text)
+        msg = parse_message(text)
         if msg is None:
             return
         if msg.type == MSG_CATALOG:
@@ -357,6 +362,40 @@ class ReadHandlers:
     )
 
 
+def dispatch_read_line(
+    line: str,
+    handlers: ReadHandlers,
+) -> dict[str, Any] | None:
+    """Parse one Airbyte Protocol line and dispatch to handlers.
+
+    Returns the trace error dict if the line was a TRACE/ERROR; None otherwise.
+    Used by both the CLI's container-stdout loop and the supervisor's
+    CloudWatch tail loop so dispatch logic stays in one place.
+    """
+    msg = parse_message(line)
+    if msg is None:
+        return None
+    if msg.type == MSG_RECORD and isinstance(msg.record, dict):
+        stream = msg.record.get("stream")
+        data = msg.record.get("data")
+        emitted = msg.record.get("emitted_at")
+        if isinstance(stream, str) and isinstance(data, dict):
+            handlers.on_record(
+                stream,
+                data,
+                emitted if isinstance(emitted, int) else None,
+            )
+    elif msg.type == MSG_STATE and isinstance(msg.state, dict):
+        handlers.on_state(msg.state)
+    elif msg.type == MSG_LOG and isinstance(msg.log, dict):
+        level = str(msg.log.get("level") or "INFO")
+        message = str(msg.log.get("message") or "")
+        handlers.on_log(level, message)
+    elif msg.type == MSG_TRACE and isinstance(msg.trace, dict) and msg.trace.get("type") == "ERROR":
+        return msg.trace.get("error") or {"message": "unspecified TRACE error"}
+    return None
+
+
 def run_read(
     client: docker.DockerClient,
     image: str,
@@ -380,27 +419,9 @@ def run_read(
 
     def on_line(text: str) -> None:
         nonlocal trace_error
-        msg = _parse_message(text)
-        if msg is None:
-            return
-        if msg.type == MSG_RECORD and isinstance(msg.record, dict):
-            stream = msg.record.get("stream")
-            data = msg.record.get("data")
-            emitted = msg.record.get("emitted_at")
-            if isinstance(stream, str) and isinstance(data, dict):
-                handlers.on_record(
-                    stream,
-                    data,
-                    emitted if isinstance(emitted, int) else None,
-                )
-        elif msg.type == MSG_STATE and isinstance(msg.state, dict):
-            handlers.on_state(msg.state)
-        elif msg.type == MSG_LOG and isinstance(msg.log, dict):
-            level = str(msg.log.get("level") or "INFO")
-            message = str(msg.log.get("message") or "")
-            handlers.on_log(level, message)
-        elif msg.type == MSG_TRACE and isinstance(msg.trace, dict) and msg.trace.get("type") == "ERROR":
-            trace_error = msg.trace.get("error") or {"message": "unspecified TRACE error"}
+        err = dispatch_read_line(text, handlers)
+        if err is not None:
+            trace_error = err
 
     with _airbyte_workdir(config, catalog=configured_catalog) as workdir:
         stats = _run_protocol_command(
