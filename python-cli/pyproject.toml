@@ -37,6 +37,10 @@ dependencies = [
     "click>=8.1",
     "requests>=2.32.2",  # CVE-2024-35195
     "platformdirs>=4.0",
+    # rich powers the design system in tui.py — panels, live panes,
+    # progress bars, tables. Same library uv/Poetry/Sentry-CLI use.
+    # Pure-python, no transitive bloat.
+    "rich>=13.7",
     # Sibling OSS package — Docker runner + S3 envelope writer. The
     # ECS supervisor depends on the same package so both surfaces emit
     # byte-identical S3 output. Brings boto3 and docker transitively.

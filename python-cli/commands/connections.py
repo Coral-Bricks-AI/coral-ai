@@ -5,6 +5,7 @@ from __future__ import annotations
 import json as _json
 
 import click
+from rich.text import Text
 
 from .. import config as cfg_mod
 from .. import tui
@@ -35,24 +36,26 @@ def connections_cmd(as_json: bool) -> None:
         click.echo(_json.dumps(items, indent=2, sort_keys=True))
         return
 
-    click.echo()
     if not items:
-        click.secho("No connections yet", bold=True)
-        click.echo()
+        tui.blank()
+        tui.console.print(Text("No connections yet.", style="dim"))
         tui.hint("Add one:  coralbricks connect <source>")
-        click.echo()
+        tui.blank()
         return
 
-    click.secho(f"Your connections ({len(items)})", bold=True)
     rows = []
     for c in items:
-        source = click.style(c.get("sourceId", "?"), fg="cyan")
-        status_val = c.get("status") or "unknown"
-        status = f"{tui.status_dot(status_val)} {status_val}"
-        last_sync = c.get("lastSyncAt") or click.style("never", dim=True)
-        rows.append([source, status, last_sync])
+        source = Text(c.get("sourceId", "?"), style=f"bold {tui.CORAL}")
+        last_sync = c.get("lastSyncAt") or "never"
+        last_sync_renderable = (
+            Text(str(last_sync)) if last_sync != "never" else Text("never", style="dim")
+        )
+        rows.append([source, tui.status_label(c.get("status")), last_sync_renderable])
 
-    tui.table(rows, headers=["source", "status", "last sync"])
-    click.echo()
-    tui.hint("Sync now:     coralbricks sync <source>")
-    click.echo()
+    tui.blank()
+    tui.panel(
+        tui.table_renderable(rows, headers=["source", "status", "last sync"]),
+        title=f"Your connections ({len(items)})",
+        footer="sync now:  coralbricks sync <source>",
+    )
+    tui.blank()

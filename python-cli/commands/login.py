@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import click
+from rich.console import Group
+from rich.text import Text
 
 from .. import config as cfg_mod
 from .. import tui
@@ -30,17 +32,17 @@ def login_cmd(api_key: str | None, server_url: str | None) -> None:
     if server_url:
         cfg.server_url = server_url.rstrip("/")
 
-    # Already-logged-in short-circuit. Surface the current identity and
+    # Already-logged-in short-circuit — surface current identity and
     # offer an inline switch so users don't have to chain logout+login.
     # Skipped when --api-key is passed explicitly (power-user override).
     if not api_key and cfg.effective_api_key():
-        click.echo()
+        tui.blank()
         tui.ok(
-            "Already logged in as "
-            + click.style(cfg.email or "unknown", fg="cyan", bold=True)
-            + "."
+            Text("Already logged in as ", style="white").append(
+                cfg.email or "unknown", style=f"bold {tui.CORAL}"
+            ).append(".")
         )
-        click.echo()
+        tui.blank()
         if not click.confirm(
             click.style("  Switch account?", fg="white"), default=False
         ):
@@ -49,14 +51,14 @@ def login_cmd(api_key: str | None, server_url: str | None) -> None:
         cfg = cfg_mod.load()
         if server_url:
             cfg.server_url = server_url.rstrip("/")
-        click.echo()
+        tui.blank()
 
     if not api_key:
-        click.echo(click.style("Coral Bricks", bold=True, fg="cyan"))
-        click.echo(
-            click.style(f"  {tui.ARROW} ", fg="blue")
-            + click.style("Create an API key at ", dim=True)
-            + click.style(SIGNUP_URL, fg="cyan")
+        tui.banner()
+        tui.console.print(
+            Text("  ").append(tui.ARROW + " ", style="blue").append(
+                "Create an API key at ", style="dim"
+            ).append(SIGNUP_URL, style=f"{tui.CORAL} underline")
         )
         api_key = click.prompt(
             click.style("  Paste your API key", fg="white"),
@@ -77,28 +79,53 @@ def login_cmd(api_key: str | None, server_url: str | None) -> None:
     cfg_mod.save(cfg)
 
     plan = (resp.get("plan") if isinstance(resp, dict) else None) or "free"
-    verified = resp.get("isVerified") if isinstance(resp, dict) else None
+    verified = bool(resp.get("isVerified")) if isinstance(resp, dict) else False
     server = cfg.effective_server_url()
     custom_server = server.rstrip("/") != cfg_mod.DEFAULT_SERVER_URL.rstrip("/")
 
-    tui.banner()
-    tui.ok(
-        "Welcome to Coral Bricks, "
-        + click.style(cfg.email or "friend", fg="cyan", bold=True)
-        + "."
-    )
-    click.echo()
-    tui.kv(
+    _render_welcome(cfg.email, plan, verified, server if custom_server else None)
+
+
+def _render_welcome(
+    email: str | None, plan: str, verified: bool, server: str | None
+) -> None:
+    headline = Text()
+    headline.append("Welcome to Coral Bricks, ", style="white")
+    headline.append(email or "friend", style=f"bold {tui.CORAL}")
+    headline.append(".")
+
+    identity = tui.kv_renderable(
         [
-            ("plan", click.style(plan, fg="magenta" if plan == "paid" else "white")),
-            ("status", click.style("verified", fg="green") if verified else None),
-            ("server", click.style(server, dim=True) if custom_server else None),
+            ("plan", Text(plan, style="magenta" if plan == "paid" else "white")),
+            ("status", Text("verified", style="green") if verified else None),
+            ("server", Text(server, style="dim") if server else None),
         ]
     )
-    click.echo()
-    tui.hint("Browse connectors:    coralbricks sources")
-    tui.hint("Connect a source:     coralbricks connect <name>")
-    click.echo()
+
+    next_steps = Text("WHAT'S NEXT", style="bold")
+    steps_lines = []
+    for cmd, desc in (
+        ("coralbricks sources", "browse 600+ connectors"),
+        ("coralbricks connect <id>", "add a data source"),
+        ("coralbricks sync <id>", "run a sync locally"),
+    ):
+        line = Text("  ")
+        line.append(cmd, style=f"bold {tui.CORAL}")
+        line.append("  ")
+        line.append(desc, style="dim")
+        steps_lines.append(line)
+
+    body = Group(
+        Text(tui.CHECK + " ", style="ok").append_text(headline),
+        Text(""),
+        identity,
+        Text(""),
+        next_steps,
+        *steps_lines,
+    )
+    tui.banner()
+    tui.panel(body, title_extra=tui.pill("LOGGED IN", "success"), accent="green")
+    tui.blank()
 
 
 @click.command("logout")
@@ -108,7 +135,7 @@ def logout_cmd() -> None:
     if removed:
         tui.ok("Logged out.")
     else:
-        click.echo(click.style("Already logged out.", dim=True))
+        tui.console.print(Text("Already logged out.", style="dim"))
 
 
 @click.command("whoami")
@@ -136,13 +163,14 @@ def whoami_cmd() -> None:
     server = cfg.effective_server_url()
     custom_server = server.rstrip("/") != cfg_mod.DEFAULT_SERVER_URL.rstrip("/")
 
-    click.echo()
-    tui.kv(
+    body = tui.kv_renderable(
         [
-            ("email", click.style(email or "-", fg="cyan", bold=True)),
-            ("plan", click.style(plan, fg="magenta" if plan == "paid" else "white")),
-            ("status", click.style("verified", fg="green") if verified else None),
-            ("server", click.style(server, dim=True) if custom_server else None),
+            ("email", Text(email or "-", style=f"bold {tui.CORAL}")),
+            ("plan", Text(plan, style="magenta" if plan == "paid" else "white")),
+            ("status", Text("verified", style="green") if verified else Text("unverified", style="yellow")),
+            ("server", Text(server, style="dim") if custom_server else None),
         ]
     )
-    click.echo()
+    tui.blank()
+    tui.panel(body, title="Identity", title_extra=tui.pill("ACTIVE", "success"))
+    tui.blank()

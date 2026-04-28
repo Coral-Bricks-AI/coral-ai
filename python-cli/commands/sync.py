@@ -10,7 +10,7 @@ Flow per run:
   4. docker run read → dispatch RECORD/STATE/LOG/TRACE messages.
      RECORDs buffer into a gzip stream per discovered stream.
   5. On stream-close, upload all gzipped JSONL parts to S3 under
-     users/{uid}/sources/{src}/conn-{cid}/runs/{rid}/{stream}/part-NNNN.jsonl.gz.
+     airbyte/users/{uid}/sources/{src}/conn-{cid}/runs/{rid}/{stream}/part-NNNN.jsonl.gz.
   6. POST /cli/v1/runs/{runId}/complete with the totals (and error, if any)
      so the run history stays in step across the CLI and managed paths.
 
@@ -29,6 +29,11 @@ import time
 from typing import Any
 
 import click
+from rich.console import Group
+from rich.live import Live
+from rich.spinner import Spinner
+from rich.table import Table
+from rich.text import Text
 
 from .. import config as cfg_mod
 from .. import tui
@@ -48,6 +53,7 @@ _SOURCE_ID_RE = re.compile(r"^[a-z0-9][a-z0-9_\-]{0,63}$")
 _ALLOWED_IMAGE_PREFIX = "airbyte/"
 _DEFAULT_ALLOWED_BUCKETS = ("coralbricks-connectors",)
 _ENV_ALLOWED_BUCKETS = "CORALBRICKS_ALLOWED_BUCKETS"
+_TOTAL_PHASES = 4
 
 
 def _allowed_buckets() -> tuple[str, ...]:
@@ -70,7 +76,7 @@ def _allowed_buckets() -> tuple[str, ...]:
     "--verbose",
     is_flag=True,
     default=False,
-    help="Stream every Airbyte log line instead of the live per-stream table.",
+    help="Stream every Airbyte log line instead of the live per-stream panel.",
 )
 def sync_cmd(source_id: str, verbose: bool) -> None:
     """Run a local Airbyte sync for a connected source."""
@@ -93,16 +99,9 @@ def sync_cmd(source_id: str, verbose: bool) -> None:
     stream_selection = run_blob.get("streamSelection", "all")
     sts_payload = run_blob["stsCredentials"]
 
-    click.echo()
-    click.secho(f"Syncing {source_id}", bold=True)
-    tui.kv(
-        [
-            ("run", click.style(f"#{run_id}", fg="cyan")),
-            ("image", image),
-            ("destination", f"s3://{bucket}/{key_prefix}/"),
-        ]
-    )
-    click.echo()
+    started_at = time.monotonic()
+
+    _render_run_header(source_id, run_id, image, bucket, key_prefix)
 
     try:
         writer_summary, end_cursor, trace_error, stream_errors = _execute_run(
@@ -122,7 +121,7 @@ def sync_cmd(source_id: str, verbose: bool) -> None:
     except RunnerError as e:
         message = _short_error(str(e))
         _report_failed(client, run_id, key_prefix, None, message)
-        _print_failure_summary(source_id, run_id, None, message, {}, verbose)
+        _print_failure_summary(source_id, run_id, None, message, {}, verbose, started_at)
         raise click.exceptions.Exit(1) from e
     except Exception as e:  # noqa: BLE001 — last-resort so /complete still fires
         _report_failed(client, run_id, key_prefix, None, f"unexpected: {e}")
@@ -138,11 +137,21 @@ def sync_cmd(source_id: str, verbose: bool) -> None:
             str(trace_error.get("message") or "Airbyte source emitted a TRACE/ERROR")
         )
         _report_failed(client, run_id, key_prefix, writer_summary, message)
-        _print_failure_summary(source_id, run_id, writer_summary, message, stream_errors, verbose)
+        _print_failure_summary(
+            source_id, run_id, writer_summary, message, stream_errors, verbose, started_at
+        )
         raise click.exceptions.Exit(1)
 
     _report_success(client, run_id, key_prefix, writer_summary, end_cursor)
-    _print_success(source_id, run_id, writer_summary, stream_errors if trace_error else {})
+    _print_success(
+        source_id,
+        run_id,
+        bucket,
+        key_prefix,
+        writer_summary,
+        stream_errors if trace_error else {},
+        started_at,
+    )
 
 
 # ---------- backend calls ----------
@@ -186,7 +195,7 @@ def _validate_run_blob(blob: dict[str, Any]) -> None:
         )
 
     prefix = str(blob["s3KeyPrefix"])
-    if not prefix.startswith("users/"):
+    if not prefix.startswith("airbyte/users/"):
         raise click.ClickException(f"Unexpected key prefix shape: {prefix!r}")
 
 
@@ -221,8 +230,6 @@ def _report_failed(
 ) -> None:
     # Best effort — the run is already broken; don't swallow the
     # original cause by raising on a follow-up reporting failure.
-    # We still forward records/bytes so the history row reflects the
-    # partial-data we uploaded before the source aborted.
     body: dict[str, Any] = {"status": "failed", "errorMessage": message}
     if summary:
         body["recordsWritten"] = int(summary.get("records", 0))
@@ -270,16 +277,12 @@ _EXCEPTION_SYNCING_RE = re.compile(r"Exception while syncing stream (\S+)")
 # Most connector-level errors worth surfacing are HTTP failures logged
 # by the Python CDK in this exact shape. Extracting (status, message)
 # gives us a compact reason we can tuck onto the ✗ row of the live
-# table instead of dumping the 500-line traceback that follows.
+# panel instead of dumping the 500-line traceback that follows.
 _HTTP_ERR_RE = re.compile(r"status code '(\d+)'.*error message: '([^']+)'")
 
 
 def _extract_short_reason(raw: str) -> str:
-    """Condense a raw Airbyte error log into a ≤120-char cause.
-
-    Prefers the HTTP status + error message when the connector logs
-    in that shape; otherwise trims to the first non-empty line.
-    """
+    """Condense a raw Airbyte error log into a ≤120-char cause."""
     if not raw:
         return "unknown error"
     m = _HTTP_ERR_RE.search(raw)
@@ -307,46 +310,54 @@ def _execute_run(
 
     Returns (summary, end_cursor, trace_error, stream_errors). Per-stream
     failure reasons are extracted from the log stream regardless of
-    mode; only the rendering differs (live table vs. plain logs).
+    mode; only the rendering differs (live panel vs. plain logs).
     """
     docker_client = get_docker_client()
 
-    # Pull is quick and produces at most a few "status" lines; keep it
-    # visible in both modes so the user sees motion during image fetch.
-    tui.hint(f"Pulling {image}…")
-    last_progress: list[str] = []
+    # --- Phase 1: pull
+    t0 = time.monotonic()
+    tui.phase(1, _TOTAL_PHASES, f"Pulling {image}")
+    seen_progress: set[str] = set()
 
     def on_progress(status: str) -> None:
-        if last_progress and last_progress[-1] == status:
+        if status in seen_progress:
             return
-        last_progress.append(status)
-        click.secho(f"  docker: {status}", dim=True)
+        seen_progress.add(status)
+        tui.console.print(Text("    " + status, style="dim"))
 
     pull_image(docker_client, image, on_progress=on_progress)
+    tui.console.print(
+        Text("    " + tui.CHECK + " image ready  ", style="dim").append(
+            f"{time.monotonic() - t0:.1f}s", style="dim"
+        )
+    )
 
-    tui.hint("Discovering streams…")
+    # --- Phase 2: discover
+    t1 = time.monotonic()
+    tui.phase(2, _TOTAL_PHASES, "Discovering streams")
     discover = discover_streams(docker_client, image, config_json)
     if not discover.streams:
         raise RunnerError("Source emitted an empty catalog — nothing to sync.")
-
     configured = build_configured_catalog(discover.streams, stream_selection)
     stream_names = [s["stream"].get("name", "?") for s in configured["streams"]]
-    tui.hint(f"Reading {len(stream_names)} stream(s): {', '.join(stream_names)}")
+    tui.console.print(
+        Text(f"    {tui.CHECK} {len(stream_names)} stream(s) discovered  ", style="dim").append(
+            f"{time.monotonic() - t1:.1f}s", style="dim"
+        )
+    )
+
+    # --- Phase 3: read
+    tui.phase(3, _TOTAL_PHASES, "Reading records")
 
     writer = ScopedS3Writer(bucket=bucket, key_prefix=key_prefix, sts=sts)
     latest_state: dict[str, Any] | None = None
-    # Per-stream root cause, distilled to ≤120 chars (e.g. "403:
-    # Insufficient permissions"). Populated by on_log when it sees
-    # "Exception while syncing stream X"; the *cause* sits on the
-    # previous ERROR frame, so we keep the last raw error around to
-    # attach to whichever stream gets named next.
     stream_errors: dict[str, str] = {}
     last_error_raw: list[str | None] = [None]
 
-    # Live-table mode is opt-out (via -v) and only engages when stdout
-    # is a real terminal — piping or CI should fall through to the
-    # plain log stream so nothing is lost in a non-interactive context.
-    live = _LiveStreamTable(stream_names) if (not verbose and sys.stdout.isatty()) else None
+    # Live panel is opt-out (-v) and only engages when stdout is a real
+    # terminal — piping or CI falls through to the plain log stream so
+    # nothing is lost in a non-interactive context.
+    live = _LivePanel(stream_names) if (not verbose and sys.stdout.isatty()) else None
 
     record_count = [0]
     last_log_print = [time.monotonic()]
@@ -362,7 +373,7 @@ def _execute_run(
         now = time.monotonic()
         if now - last_log_print[0] > 1.0:
             last_log_print[0] = now
-            click.secho(f"  · {record_count[0]} records", dim=True)
+            tui.console.print(Text(f"    · {record_count[0]:,} records", style="dim"))
 
     def on_state(state: dict[str, Any]) -> None:
         nonlocal latest_state
@@ -370,8 +381,6 @@ def _execute_run(
 
     def on_log(level: str, message: str) -> None:
         lvl = level.upper()
-        # Always harvest stream lifecycle + error reasons; the render
-        # path (live vs. verbose) is the only thing that differs.
         if lvl == "INFO":
             m = _FINISHED_SYNCING_RE.search(message)
             if m and live is not None:
@@ -393,15 +402,10 @@ def _execute_run(
                 # Stash the raw error so the *next* "Exception while
                 # syncing X" ERROR frame can pull its root cause from it.
                 last_error_raw[0] = message
-        # Live mode stays quiet — the per-stream table is the UI.
-        # Verbose (or non-TTY) dumps every log line colored by level.
         if live is None:
             color = {"ERROR": "red", "FATAL": "red", "WARN": "yellow"}.get(lvl)
-            click.secho(
-                f"  [{lvl}] {_short_error(message)}",
-                fg=color,
-                dim=color is None,
-                err=True,
+            tui.console.print(
+                Text("    [" + lvl + "] " + _short_error(message), style=color or "dim")
             )
 
     if live is not None:
@@ -422,9 +426,8 @@ def _execute_run(
             )
             live.stop(overall_failed=overall_failed)
 
-    # Always flush whatever we buffered. A zero-record run still writes
-    # zero-record files so the prefix exists — makes the verify-step
-    # directory listing meaningful even for empty syncs.
+    # --- Phase 4: upload (writer.close flushes any pending parts)
+    tui.phase(4, _TOTAL_PHASES, "Uploading to S3")
     summary = writer.close()
 
     if stats.trace_error is not None:
@@ -439,13 +442,13 @@ def _execute_run(
     return summary, latest_state, None, stream_errors
 
 
-class _LiveStreamTable:
-    """Per-stream progress pane that updates in place during `read`.
+class _LivePanel:
+    """Live per-stream progress panel powered by rich.Live.
 
-    Renders a block of N lines (one per stream) using ANSI cursor-up
-    (`\\x1b[NF`) to overwrite itself on every refresh. A daemon ticker
-    thread advances the spinner at 10 Hz so quiet streams still look
-    alive; RECORD arrivals bump the per-stream counter synchronously.
+    Renders a Panel containing a Table with one row per stream:
+    icon · name · records · bytes · note. The icon column animates a
+    rich Spinner for running streams; rich.Live re-renders the panel
+    at 10 Hz so the spinner advances on its own.
 
     State transitions:
       pending → running  on first RECORD for that stream
@@ -453,23 +456,40 @@ class _LiveStreamTable:
       *       → failed   on ERROR "Exception while syncing stream <name>"
     """
 
-    _SPINNER = ("⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏")
-
     def __init__(self, streams: list[str]) -> None:
         self._streams = list(streams)
         self._counts: dict[str, int] = {s: 0 for s in self._streams}
         self._status: dict[str, str] = {s: "pending" for s in self._streams}
         self._reasons: dict[str, str] = {}
-        self._frame = 0
-        self._rendered_lines = 0
         self._lock = threading.Lock()
-        self._stop_evt = threading.Event()
-        self._thread: threading.Thread | None = None
+        self._started = time.monotonic()
+        self._live: Live | None = None
+        # Reused so rich.Spinner can animate uniformly across all running rows.
+        self._spinner = Spinner("dots", style="cyan")
+
+    # ----- lifecycle -----
 
     def start(self) -> None:
-        self._render()
-        self._thread = threading.Thread(target=self._tick, daemon=True)
-        self._thread.start()
+        self._live = Live(
+            self._render(),
+            console=tui.console,
+            refresh_per_second=10,
+            transient=False,
+        )
+        self._live.start()
+
+    def stop(self, overall_failed: bool = False) -> None:
+        with self._lock:
+            for name in self._streams:
+                if self._status[name] in ("pending", "running"):
+                    self._status[name] = "failed" if overall_failed else "done"
+        if self._live is not None:
+            # One last render so the final state lands in the buffer.
+            self._live.update(self._render(), refresh=True)
+            self._live.stop()
+            self._live = None
+
+    # ----- updates -----
 
     def bump(self, stream: str) -> None:
         with self._lock:
@@ -477,79 +497,101 @@ class _LiveStreamTable:
                 self._counts[stream] += 1
                 if self._status[stream] == "pending":
                     self._status[stream] = "running"
+        self._refresh()
 
     def mark_done(self, stream: str) -> None:
         with self._lock:
             if stream in self._status and self._status[stream] != "failed":
                 self._status[stream] = "done"
+        self._refresh()
 
     def mark_failed(self, stream: str, reason: str | None = None) -> None:
         with self._lock:
             if stream in self._status:
                 self._status[stream] = "failed"
-                # Keep the *first* reason — later ERROR frames are
-                # usually retries of the same root cause.
                 if reason and stream not in self._reasons:
                     self._reasons[stream] = reason
+        self._refresh()
 
-    def stop(self, overall_failed: bool = False) -> None:
-        self._stop_evt.set()
-        if self._thread is not None:
-            self._thread.join(timeout=0.5)
-        # Container closed stdout → anything still animating is resolved.
-        # If the run itself failed (top-level trace error or non-zero
-        # exit) streams that never got a per-stream error frame are
-        # marked failed without a reason — honest "we don't know why
-        # this one didn't finish" rather than a misleading ✓.
+    def _refresh(self) -> None:
+        if self._live is not None:
+            self._live.update(self._render())
+
+    # ----- rendering -----
+
+    def _render(self) -> Group:
         with self._lock:
-            for name in self._streams:
-                if self._status[name] in ("pending", "running"):
-                    self._status[name] = "failed" if overall_failed else "done"
-        self._render()
+            elapsed = time.monotonic() - self._started
+            total = sum(self._counts.values())
+            rate = total / elapsed if elapsed > 0.05 else 0.0
+            done = sum(1 for s in self._streams if self._status[s] == "done")
+            failed = sum(1 for s in self._streams if self._status[s] == "failed")
+            running = sum(1 for s in self._streams if self._status[s] == "running")
 
-    def _tick(self) -> None:
-        while not self._stop_evt.wait(0.1):
-            with self._lock:
-                self._frame = (self._frame + 1) % len(self._SPINNER)
-            self._render()
+            header = Text()
+            header.append(f"{done}/{len(self._streams)} done", style="dim")
+            header.append("   ")
+            header.append(f"{running} running", style="cyan")
+            if failed:
+                header.append("   ")
+                header.append(f"{failed} failed", style="red")
+            header.append("   ")
+            header.append(f"{total:,} records", style="white")
+            header.append("   ")
+            header.append(f"{rate:,.0f}/s", style="dim")
+            header.append("   ")
+            header.append(f"{elapsed:.1f}s", style="dim")
 
-    def _render(self) -> None:
-        if not self._streams:
-            return
-        with self._lock:
-            out: list[str] = []
-            if self._rendered_lines:
-                # CPL — cursor previous line N times (column 1).
-                out.append(f"\x1b[{self._rendered_lines}F")
-            name_w = max(len(s) for s in self._streams)
+            t = Table(box=None, show_edge=False, pad_edge=False, padding=(0, 2), show_header=False)
+            t.add_column("icon", width=2)
+            t.add_column("name", overflow="ellipsis")
+            t.add_column("count", justify="right")
+            t.add_column("note", overflow="ellipsis")
+
             for name in self._streams:
                 status = self._status[name]
                 count = self._counts[name]
                 if status == "pending":
-                    icon = click.style("·", dim=True)
-                    count_text = click.style("pending", dim=True)
+                    icon: Any = Text("·", style="dim")
+                    count_t = Text("pending", style="dim")
+                    note_t: Any = Text("")
                 elif status == "running":
-                    icon = click.style(self._SPINNER[self._frame], fg="cyan")
-                    count_text = f"{count} records"
+                    icon = self._spinner
+                    count_t = Text(f"{count:,}", style="white")
+                    note_t = Text("syncing", style="cyan")
                 elif status == "failed":
-                    icon = click.style("✗", fg="red", bold=True)
-                    reason = self._reasons.get(name)
-                    suffix = reason if reason else "failed"
-                    count_text = click.style(
-                        f"{count} records · {suffix}", fg="red"
-                    )
-                else:
-                    icon = click.style("✓", fg="green", bold=True)
-                    count_text = f"{count} records"
-                # `\x1b[K` clears any leftover chars from a previous
-                # longer render on this line.
-                out.append(f"  {icon} {name.ljust(name_w)}  {count_text}\x1b[K\n")
-            sys.stdout.write("".join(out))
-            sys.stdout.flush()
-            self._rendered_lines = len(self._streams)
+                    icon = Text(tui.CROSS, style="bold red")
+                    count_t = Text(f"{count:,}", style="white")
+                    note_t = Text(self._reasons.get(name, "failed"), style="red")
+                else:  # done
+                    icon = Text(tui.CHECK, style="bold green")
+                    count_t = Text(f"{count:,}", style="white")
+                    note_t = Text("complete", style="green")
+                t.add_row(icon, Text(name, style="white"), count_t, note_t)
+
+            return Group(header, Text(""), t)
 
 
 # ---------- terminal output ----------
+
+
+def _render_run_header(
+    source_id: str, run_id: int, image: str, bucket: str, key_prefix: str
+) -> None:
+    body = tui.kv_renderable(
+        [
+            ("run", Text(f"#{run_id}", style="cyan")),
+            ("image", Text(image, style="white")),
+            ("destination", Text(f"s3://{bucket}/{key_prefix}/", style="dim")),
+        ]
+    )
+    tui.blank()
+    tui.panel(
+        body,
+        title=f"Sync · {source_id}",
+        title_extra=tui.pill("RUNNING", "running"),
+    )
+    tui.blank()
 
 
 def _print_failure_summary(
@@ -559,100 +601,141 @@ def _print_failure_summary(
     message: str,
     stream_errors: dict[str, str],
     verbose: bool,
+    started_at: float,
 ) -> None:
-    """Pretty single block that replaces the raw Airbyte error dump.
-
-    On failure the CLI shows: the top-level reason, the per-stream
-    reasons we distilled during the run, and — if any records landed
-    before the source aborted — a table of what made it to S3. That's
-    enough to diagnose the common failures (auth scope, rate limit,
-    transient 5xx) without exposing the Python traceback the source
-    connector produces. Users who want the firehose re-run with `-v`.
-    """
-    # When we've already distilled a reason for each failed stream, the
-    # top-line message is almost always a duplicate of Airbyte's noisy
-    # "During the sync, the following streams did not sync successfully"
-    # envelope. Compact it to "N stream(s) failed" and let the per-stream
-    # rows carry the signal; fall back to the raw message otherwise so a
-    # top-level TRACE/ERROR (auth, config) still reaches the user.
+    """Branded failure panel — replaces the raw Airbyte traceback dump."""
+    duration = time.monotonic() - started_at
     headline = (
         f"{len(stream_errors)} stream{'s' if len(stream_errors) != 1 else ''} failed"
         if stream_errors
         else message
     )
-    click.echo()
-    tui.warn(
-        f"Sync failed for {click.style(source_id, fg='cyan', bold=True)} "
-        f"(run #{run_id}): {headline}"
+
+    lines: list[Any] = []
+    lines.append(
+        Text("✗ ", style="err").append(Text(headline, style="bold")).append(
+            f"   {duration:.1f}s", style="dim"
+        )
     )
+
     if stream_errors:
-        click.echo()
+        lines.append(Text(""))
         for name, reason in stream_errors.items():
-            click.secho(
-                f"  ✗ {name}: {reason}",
-                fg="red",
-            )
+            line = Text("  ")
+            line.append(tui.CROSS + " ", style="bold red")
+            line.append(name, style="bold")
+            line.append(": ", style="dim")
+            line.append(reason, style="red")
+            lines.append(line)
 
     records = int(summary.get("records", 0)) if summary else 0
     streams: dict[str, dict[str, Any]] = summary.get("streams", {}) if summary else {}
     if records > 0 and streams:
-        click.echo()
-        tui.hint(
-            f"Partial data uploaded: {records} records "
-            f"({_human_bytes(summary.get('bytes', 0) if summary else 0)})"
+        lines.append(Text(""))
+        lines.append(
+            Text(
+                f"Partial data uploaded: {records:,} records "
+                f"({_human_bytes(summary.get('bytes', 0) if summary else 0)})",
+                style="dim",
+            )
         )
         rows = [
             (
-                name,
-                str(info.get("records", 0)),
-                _human_bytes(info.get("bytes", 0)),
-                _human_bytes(info.get("gzippedBytes", 0)),
+                Text(name, style=f"bold {tui.CORAL}"),
+                Text(f"{int(info.get('records', 0)):,}"),
+                Text(_human_bytes(info.get("bytes", 0))),
+                Text(_human_bytes(info.get("gzippedBytes", 0))),
             )
             for name, info in streams.items()
         ]
-        click.echo()
-        tui.table(rows, headers=("stream", "records", "raw", "gzipped"))
+        lines.append(Text(""))
+        lines.append(tui.table_renderable(rows, headers=("stream", "records", "raw", "gzipped")))
 
     if not verbose:
-        click.echo()
-        tui.hint("Rerun with --verbose to see the full Airbyte log.")
-    click.echo()
+        lines.append(Text(""))
+        lines.append(Text("rerun with --verbose for the full Airbyte log", style="dim"))
+
+    tui.blank()
+    tui.panel(
+        Group(*lines),
+        title=f"Sync failed · {source_id} · run #{run_id}",
+        title_extra=tui.pill("FAILED", "fail"),
+        accent="red",
+    )
+    tui.blank()
 
 
 def _print_success(
     source_id: str,
     run_id: int,
+    bucket: str,
+    key_prefix: str,
     summary: dict[str, Any],
-    stream_warnings: dict[str, str] | None = None,
+    stream_warnings: dict[str, str] | None,
+    started_at: float,
 ) -> None:
-    click.echo()
-    headline = (
-        f"Synced {click.style(source_id, fg='cyan', bold=True)}  "
-        f"run #{run_id} — "
-        f"{summary.get('records', 0)} records "
-        f"({_human_bytes(summary.get('bytes', 0))})"
-    )
-    if stream_warnings:
-        tui.ok(f"{headline}  ({len(stream_warnings)} skipped)")
-        for name, reason in stream_warnings.items():
-            click.secho(f"  ! {name}: {reason}", fg="yellow")
-    else:
-        tui.ok(headline)
-
+    duration = time.monotonic() - started_at
+    records = int(summary.get("records", 0))
+    bytes_total = int(summary.get("bytes", 0))
+    rate = records / duration if duration > 0.05 else 0.0
     streams: dict[str, dict[str, Any]] = summary.get("streams", {})
+
+    lines: list[Any] = []
+    headline = Text()
+    headline.append(tui.CHECK + " ", style="ok")
+    headline.append("Synced ", style="white")
+    headline.append(source_id, style=f"bold {tui.CORAL}")
+    headline.append("  ")
+    headline.append(f"{records:,} records", style="white")
+    headline.append("  ·  ", style="dim")
+    headline.append(_human_bytes(bytes_total), style="white")
+    headline.append("  ·  ", style="dim")
+    headline.append(f"{duration:.1f}s", style="white")
+    if rate:
+        headline.append("  ·  ", style="dim")
+        headline.append(f"{rate:,.0f}/s", style="dim")
+    lines.append(headline)
+
+    if stream_warnings:
+        lines.append(Text(""))
+        lines.append(
+            Text(f"{len(stream_warnings)} stream(s) skipped:", style="yellow")
+        )
+        for name, reason in stream_warnings.items():
+            line = Text("  ! ", style="warn")
+            line.append(name, style="bold")
+            line.append(": ", style="dim")
+            line.append(reason, style="yellow")
+            lines.append(line)
+
     if streams:
         rows = [
             (
-                name,
-                str(info.get("records", 0)),
-                _human_bytes(info.get("bytes", 0)),
-                _human_bytes(info.get("gzippedBytes", 0)),
+                Text(name, style=f"bold {tui.CORAL}"),
+                Text(f"{int(info.get('records', 0)):,}"),
+                Text(_human_bytes(info.get("bytes", 0))),
+                Text(_human_bytes(info.get("gzippedBytes", 0))),
             )
             for name, info in streams.items()
         ]
-        click.echo()
-        tui.table(rows, headers=("stream", "records", "raw", "gzipped"))
-    click.echo()
+        lines.append(Text(""))
+        lines.append(tui.table_renderable(rows, headers=("stream", "records", "raw", "gzipped")))
+
+    lines.append(Text(""))
+    lines.append(
+        Text("uploaded to ", style="dim").append(
+            f"s3://{bucket}/{key_prefix}/", style="white"
+        )
+    )
+
+    tui.blank()
+    tui.panel(
+        Group(*lines),
+        title=f"Sync · {source_id} · run #{run_id}",
+        title_extra=tui.pill("SUCCESS", "success"),
+        accent="green",
+    )
+    tui.blank()
 
 
 def _human_bytes(n: Any) -> str:

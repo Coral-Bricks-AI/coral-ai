@@ -11,6 +11,7 @@ import re
 from typing import Any
 
 import click
+from rich.text import Text
 
 from .. import config as cfg_mod
 from .. import tui
@@ -40,12 +41,16 @@ def disconnect_cmd(source_id: str, yes: bool) -> None:
     if not isinstance(conn_id, int):
         raise click.ClickException("Malformed connection record (missing id).")
 
-    if not yes and not click.confirm(
-        f"Remove connection for {click.style(source_id, fg='cyan', bold=True)} (conn #{conn_id})?",
-        default=False,
-    ):
-        tui.hint("Cancelled.")
-        return
+    if not yes:
+        tui.blank()
+        tui.warn(
+            Text("You are about to remove ").append(source_id, style=f"bold {tui.CORAL}").append(".")
+        )
+        tui.console.print(Text("  This deletes the connection but keeps prior sync data in S3.", style="dim"))
+        tui.blank()
+        if not click.confirm(click.style("  Continue?", fg="white"), default=False):
+            tui.hint("Cancelled.")
+            return
 
     try:
         client.delete(f"/cli/v1/connections/{conn_id}")
@@ -54,9 +59,13 @@ def disconnect_cmd(source_id: str, yes: bool) -> None:
     except ApiError as e:
         raise click.ClickException(f"Failed to disconnect ({e.status}): {e.message}") from e
 
-    click.echo()
-    tui.ok(f"Disconnected {click.style(source_id, fg='cyan', bold=True)} (conn #{conn_id})")
-    click.echo()
+    tui.blank()
+    tui.ok(
+        Text("Disconnected ")
+        .append(source_id, style=f"bold {tui.CORAL}")
+        .append(f" (conn #{conn_id}).")
+    )
+    tui.blank()
 
 
 def _find_connection(client: Client, source_id: str) -> dict[str, Any] | None:

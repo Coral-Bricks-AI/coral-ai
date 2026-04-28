@@ -52,7 +52,7 @@ def _run_blob(**overrides: Any) -> dict[str, Any]:
         "dockerImage": "airbyte/source-notion:latest",
         "configJson": {"start_date": "2020-01-01", "credentials": {"access_token": "x"}},
         "s3Bucket": "coralbricks-connectors",
-        "s3KeyPrefix": "users/1/sources/notion/conn-7/runs/42",
+        "s3KeyPrefix": "airbyte/users/1/sources/notion/conn-7/runs/42",
         "stsCredentials": {
             "accessKeyId": "AKIA",
             "secretAccessKey": "SECRET",
@@ -134,10 +134,10 @@ def test_sync_success_reports_complete(monkeypatch, mocked_responses):
     body = complete_req["body"]
     assert body["status"] == "success"
     assert body["recordsWritten"] == 2
-    assert body["s3KeyPrefix"] == "users/1/sources/notion/conn-7/runs/42"
+    assert body["s3KeyPrefix"] == "airbyte/users/1/sources/notion/conn-7/runs/42"
     assert "endCursor" in body
 
-    expected_key = "coralbricks-connectors/users/1/sources/notion/conn-7/runs/42/pages/part-0000.jsonl.gz"
+    expected_key = "coralbricks-connectors/airbyte/users/1/sources/notion/conn-7/runs/42/pages/part-0000.jsonl.gz"
     assert expected_key in uploaded
 
 

@@ -24,15 +24,14 @@ from typing import Any
 from urllib.parse import quote, urlparse
 
 import click
+from rich.console import Group
+from rich.text import Text
 
 from .. import config as cfg_mod
 from .. import tui
 from ..api import ApiError, AuthError, Client
 from ..oauth import LoopbackServer
 
-# sourceIds are registry keys controlled by our backend — lowercase letters,
-# digits, hyphens, underscores. We enforce it client-side so a typo like
-# `../admin` is rejected locally before it ever hits the wire.
 _SOURCE_ID_RE = re.compile(r"^[a-z0-9][a-z0-9_\-]{0,63}$")
 
 
@@ -62,16 +61,20 @@ def connect_cmd(source_id: str, no_browser: bool, assume_yes: bool) -> None:
 
     connector = _find_connector(client, source_id)
     auth_type = connector.get("authType")
+    display = connector.get("displayName") or source_id
 
-    click.echo()
-    click.secho(f"Connecting {connector.get('displayName') or source_id}", bold=True)
-    tui.kv(
-        [
-            ("source", click.style(source_id, fg="cyan")),
-            ("auth", tui.auth_pill(auth_type)),
-        ]
+    tui.blank()
+    tui.panel(
+        tui.kv_renderable(
+            [
+                ("source", Text(source_id, style=f"bold {tui.CORAL}")),
+                ("name", Text(display)),
+                ("auth", tui.auth_pill(auth_type)),
+            ]
+        ),
+        title=f"Connect · {display}",
+        title_extra=tui.pill("STARTING", "info"),
     )
-    click.echo()
 
     # Warn when the user already has this source connected so they know
     # they're about to refresh credentials rather than adding something
@@ -116,24 +119,23 @@ def _find_existing(client: Client, source_id: str) -> dict[str, Any] | None:
 
 def _prompt_reconnect_confirmation(existing: dict[str, Any]) -> None:
     status = existing.get("status") or "unknown"
-    tui.warn(
-        click.style("You're already connected to this source.", fg="yellow", bold=True)
-    )
+    last_sync = existing.get("lastSyncAt") or "never"
+    tui.blank()
+    tui.warn("You're already connected to this source.")
     tui.kv(
         [
-            ("status", f"{tui.status_dot(status)} {status}"),
+            ("status", tui.status_label(status)),
             (
                 "last sync",
-                str(existing.get("lastSyncAt")) if existing.get("lastSyncAt") else click.style("never", dim=True),
+                Text(str(last_sync)) if last_sync != "never" else Text("never", style="dim"),
             ),
         ]
     )
-    click.echo()
-    click.secho("  Continuing will refresh its credentials in place.", dim=True)
-    click.echo()
+    tui.console.print(Text("  Continuing will refresh its credentials in place.", style="dim"))
+    tui.blank()
     if not click.confirm(click.style("  Continue?", fg="white"), default=False):
         raise click.Abort()
-    click.echo()
+    tui.blank()
 
 
 def _find_connector(client: Client, source_id: str) -> dict[str, Any]:
@@ -184,20 +186,24 @@ def _connect_oauth(
         if scheme not in ("http", "https"):
             raise click.ClickException(f"Backend returned an unsafe authUrl scheme: {scheme!r}")
 
-        tui.hint(f"Loopback listening on {loopback.url}")
+        tui.blank()
+        tui.phase(1, 3, "Loopback listening")
+        tui.console.print(Text("    " + loopback.url, style="dim"))
         if not no_browser:
-            tui.hint("Opening browser…")
+            tui.phase(2, 3, "Opening browser")
             webbrowser.open(auth_url, new=2)
+        else:
+            tui.phase(2, 3, "Skipping browser (--no-browser)")
 
         # Always surface the URL — users may want to paste it into a
         # different browser (different profile, incognito, another
         # device) or the auto-open may have silently failed.
-        click.echo()
-        click.echo(
-            "  " + click.style("Or open this URL:", bold=True) + " " + click.style(auth_url, fg="cyan", underline=True)
+        tui.blank()
+        tui.console.print(
+            Text("  Or open this URL: ", style="bold").append(auth_url, style=f"{tui.CORAL} underline")
         )
-        click.echo()
-        click.secho("  Waiting for the callback…", dim=True)
+        tui.blank()
+        tui.phase(3, 3, "Waiting for the callback…")
 
         result = loopback.wait()
 
@@ -220,14 +226,20 @@ def _connect_api_key(
             f"Connector '{source_id}' is api_key but exposes no fields — backend misconfigured."
         )
 
+    tui.blank()
+    tui.heading("Credentials")
+
     credentials: dict[str, Any] = {}
     for field in fields:
         credentials[field["key"]] = _prompt_field(field)
 
     config_fields = connector.get("configFields") or []
     config: dict[str, Any] = {}
-    for field in config_fields:
-        config[field["key"]] = _prompt_field(field)
+    if config_fields:
+        tui.blank()
+        tui.heading("Configuration")
+        for field in config_fields:
+            config[field["key"]] = _prompt_field(field)
 
     body: dict[str, Any] = {"credentials": credentials}
     if config:
@@ -246,14 +258,38 @@ def _connect_api_key(
 
 def _print_connected(source_id: str, *, reconnected: bool) -> None:
     verb = "Reconnected" if reconnected else "Connected"
-    tui.banner(tagline=f"{verb.lower()} {source_id}")
-    tui.ok(f"{verb} " + click.style(source_id, fg="cyan", bold=True))
+    headline = Text()
+    headline.append(verb + " ", style="white")
+    headline.append(source_id, style=f"bold {tui.CORAL}")
+    headline.append(".")
+
+    next_steps = []
+    for cmd, desc in (
+        ("coralbricks connections", "list yours"),
+        (f"coralbricks sync {source_id}", "run a sync now"),
+    ):
+        line = Text("  ")
+        line.append(cmd, style=f"bold {tui.CORAL}")
+        line.append("  ")
+        line.append(desc, style="dim")
+        next_steps.append(line)
+
+    body_items: list[Any] = [
+        Text(tui.CHECK + " ", style="ok").append_text(headline),
+    ]
     if reconnected:
-        click.secho("  credentials refreshed in place", dim=True)
-    click.echo()
-    tui.hint("List yours:   coralbricks connections")
-    tui.hint(f"Sync now:     coralbricks sync {source_id}")
-    click.echo()
+        body_items.append(Text("  credentials refreshed in place", style="dim"))
+    body_items += [Text(""), Text("WHAT'S NEXT", style="bold"), *next_steps]
+    body = Group(*body_items)
+
+    tui.blank()
+    tui.panel(
+        body,
+        title=f"{verb} · {source_id}",
+        title_extra=tui.pill("READY", "success"),
+        accent="green",
+    )
+    tui.blank()
 
 
 def _prompt_field(field: dict[str, Any]) -> Any:
@@ -262,7 +298,7 @@ def _prompt_field(field: dict[str, Any]) -> Any:
     is_secret = bool(field.get("secret")) or field.get("type") in ("password", "secret")
     split_lines = bool(field.get("splitLines"))
 
-    prompt_label = click.style(label, fg="white")
+    prompt_label = click.style("  " + label, fg="white")
     if not required:
         prompt_label += click.style(" (optional)", dim=True)
     if split_lines:
