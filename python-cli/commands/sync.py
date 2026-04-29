@@ -680,21 +680,63 @@ def _print_success(
     rate = records / duration if duration > 0.05 else 0.0
     streams: dict[str, dict[str, Any]] = summary.get("streams", {})
 
+    # A run that completes the protocol but uploads zero records is the
+    # classic restricted-API-key signature: the connector authenticates
+    # fine but every list endpoint silently returns []. Surface it as a
+    # warning instead of a green checkmark so the user actually notices.
+    is_empty = records == 0 and not stream_warnings
+
     lines: list[Any] = []
     headline = Text()
-    headline.append(tui.CHECK + " ", style="ok")
-    headline.append("Synced ", style="white")
-    headline.append(source_id, style=f"bold {tui.CORAL}")
-    headline.append("  ")
-    headline.append(f"{records:,} records", style="white")
-    headline.append("  ·  ", style="dim")
-    headline.append(_human_bytes(bytes_total), style="white")
-    headline.append("  ·  ", style="dim")
-    headline.append(f"{duration:.1f}s", style="white")
-    if rate:
+    if is_empty:
+        headline.append("! ", style="warn")
+        headline.append("Synced ", style="white")
+        headline.append(source_id, style=f"bold {tui.CORAL}")
+        headline.append("  ")
+        headline.append("0 records", style="bold yellow")
         headline.append("  ·  ", style="dim")
-        headline.append(f"{rate:,.0f}/s", style="dim")
+        headline.append(f"{duration:.1f}s", style="white")
+    else:
+        headline.append(tui.CHECK + " ", style="ok")
+        headline.append("Synced ", style="white")
+        headline.append(source_id, style=f"bold {tui.CORAL}")
+        headline.append("  ")
+        headline.append(f"{records:,} records", style="white")
+        headline.append("  ·  ", style="dim")
+        headline.append(_human_bytes(bytes_total), style="white")
+        headline.append("  ·  ", style="dim")
+        headline.append(f"{duration:.1f}s", style="white")
+        if rate:
+            headline.append("  ·  ", style="dim")
+            headline.append(f"{rate:,.0f}/s", style="dim")
     lines.append(headline)
+
+    if is_empty:
+        lines.append(Text(""))
+        lines.append(
+            Text(
+                "No data was returned by any stream. Common causes:",
+                style="yellow",
+            )
+        )
+        lines.append(Text("  · the account is genuinely empty", style="dim"))
+        lines.append(
+            Text(
+                "  · the credentials are too restricted (e.g. a Stripe rk_live_… key with no read scopes)",
+                style="dim",
+            )
+        )
+        lines.append(
+            Text(
+                "  · you connected a sandbox/test account that has no data",
+                style="dim",
+            )
+        )
+        lines.append(Text(""))
+        line = Text("  Try ", style="dim")
+        line.append(f"coralbricks connect {source_id}", style=f"bold {tui.CORAL}")
+        line.append(" again with a full-access key.", style="dim")
+        lines.append(line)
 
     if stream_warnings:
         lines.append(Text(""))
@@ -732,8 +774,8 @@ def _print_success(
     tui.panel(
         Group(*lines),
         title=f"Sync · {source_id} · run #{run_id}",
-        title_extra=tui.pill("SUCCESS", "success"),
-        accent="green",
+        title_extra=tui.pill("EMPTY" if is_empty else "SUCCESS", "warn" if is_empty else "success"),
+        accent="yellow" if is_empty else "green",
     )
     tui.blank()
 

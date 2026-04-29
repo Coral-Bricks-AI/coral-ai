@@ -172,6 +172,39 @@ def test_sync_trace_error_reports_failed(monkeypatch, mocked_responses):
     assert "401 Unauthorized" in complete_req["body"]["errorMessage"]
 
 
+def test_sync_zero_records_warns_empty(monkeypatch, mocked_responses):
+    """Zero records across all streams → success at the protocol level
+    but flagged as EMPTY in the UI so users notice their creds are
+    likely too restricted (Stripe rk_… with no scopes is the canonical
+    case).
+    """
+    mocked_responses.add(
+        responses.POST,
+        f"{BACKEND}/cli/v1/runs",
+        json={"success": True, "data": _run_blob()},
+        status=201,
+    )
+    complete_req: dict[str, Any] = {}
+
+    def _complete_cb(req):
+        complete_req["body"] = json.loads(req.body)
+        return (200, {}, json.dumps({"success": True, "data": {"runId": 42, "status": "success"}}))
+
+    mocked_responses.add_callback(
+        responses.POST, f"{BACKEND}/cli/v1/runs/42/complete", callback=_complete_cb
+    )
+
+    _stub_runner(monkeypatch, records=[])
+
+    result = CliRunner().invoke(cli, ["sync", "notion"])
+    assert result.exit_code == 0, result.output
+    assert "EMPTY" in result.output
+    assert "0 records" in result.output
+    assert "credentials" in result.output.lower()
+    assert complete_req["body"]["status"] == "success"
+    assert complete_req["body"]["recordsWritten"] == 0
+
+
 def test_sync_trace_error_with_records_reports_success(monkeypatch, mocked_responses):
     """Per-stream failure but other streams uploaded data → success-with-warnings."""
     mocked_responses.add(
