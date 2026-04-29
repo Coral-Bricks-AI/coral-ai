@@ -70,7 +70,7 @@ _MAX_FRAME_BYTES = 64 * 1024 * 1024
 # ``platform/sandbox/subprocess_executor.py``); this is a per-call
 # safety net so a hung gateway doesn't burn the entire wall budget
 # on one tool call.
-DEFAULT_RPC_TIMEOUT_S = 60.0
+DEFAULT_RPC_TIMEOUT_S = 30.0
 
 # Env var name the sandbox runner sets before exec'ing the pipeline.
 SOCKET_ENV_VAR = "CORAL_GATEWAY_SOCKET"

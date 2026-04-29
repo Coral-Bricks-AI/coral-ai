@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "coralbricks-sandbox-runtime"
-version = "0.1.1"
+version = "0.1.4"
 description = "In-sandbox shim for Coral Bricks pipelines: thin RPC clients to the gateway's tool kernel and LLM proxy. Pre-installed in every per-pipeline venv. Stdlib-only."
 readme = "README.md"
 license = "Apache-2.0"
