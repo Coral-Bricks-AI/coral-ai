@@ -16,7 +16,7 @@ Fits anything with a try-evaluate-iterate shape: hyperparameter sweeps, LoRA / f
 
 I used Polyp to drive a **108-experiment LoRA fine-tuning sweep on gpt-oss-20b vs HotpotQA over three days.** Started at 0.13 EM (untrained baseline), ended at 0.72 EM (+59pp). Most of the gain came from a two-layer super-additive interaction on full-attention layers [9, 19] that the Auto-suggester found by hill-climbing through ~30 layer-subset variants — most of the early ones plateaued at +30-40pp.
 
-![error rate over time across 107 experiments](docs/error-curve.svg)
+![error rate over time across 108 experiments](docs/error-curve.svg)
 
 Best-so-far error rate vs wall-clock time. Each dot is one experiment; the blue stair-step is the running minimum. The Day-2 lull is real — the GPUs were shared with other work that weekend.
 

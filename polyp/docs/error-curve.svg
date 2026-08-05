@@ -1,9 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1400" height="740" viewBox="0 0 1400 740" font-family="-apple-system, Helvetica, Arial, sans-serif">
 <rect width="1400" height="740" fill="#ffffff"/>
-<text x="90" y="32" font-size="16" font-weight="700" fill="#222">gpt-oss-20b LoRA FT on HotpotQA · error rate vs time across 107 experiments (log y)</text>
+<text x="90" y="32" font-size="16" font-weight="700" fill="#222">gpt-oss-20b LoRA FT on HotpotQA · error rate vs time across 108 experiments (log y)</text>
 <text x="90" y="52" font-size="12" font-weight="600" fill="#444">Model: openai/gpt-oss-20b (24L: 12 FA + 12 SWA)  ·  Dataset: HotpotQA (train + n=100 eval)  ·  Context: up to 16K  ·  Metric: error rate (1 − EM)</text>
 <text x="90" y="70" font-size="12" fill="#666">Scatter = per-run end-of-training EM. Blue stepped line = best-so-far envelope. Karpathy-style log-y declining curve.</text>
-<text x="90" y="86" font-size="11" fill="#888">107 runs · 99 with err extracted · 8 cancelled (× in cancelled lane) · baseline err 0.87 → min err 0.28</text>
+<text x="90" y="86" font-size="11" fill="#888">108 experiments · 99 plotted with err · 8 cancelled (× in cancelled lane) · 1 debug run with no err value · baseline err 0.87 → min err 0.28</text>
 <g transform="translate(0,60)">
 <rect x="90" y="100" width="1250" height="500" fill="none" stroke="#444" stroke-width="1"/>
 <line x1="90" y1="600.0" x2="1340" y2="600.0" stroke="#DDD" stroke-width="0.7" stroke-dasharray="2,3"/>
