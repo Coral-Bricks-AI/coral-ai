@@ -31,11 +31,33 @@ python3 token_time_breakdown.py
 python3 cost.py
 python3 main_vs_sidecar.py
 python3 reread_breakdown.py
+python3 codex_usage.py --days 7  # Codex: exact usage by model and agent type
 ```
 
 > tiktoken is OpenAI's tokenizer, not Claude's, so token *proportions* are
 > reliable to ~±15%, not Claude-exact. The billed-token counts in `cost.py` come
 > straight from the API `usage` blocks and are exact.
+
+### Codex usage
+
+`codex_usage.py` analyzes local Codex rollouts under `~/.codex/sessions`. It
+uses Codex's native per-call token counters rather than retokenizing text and
+reports exact logged input, cached-input, output, reasoning-output, and total
+tokens by model, agent type, model × agent type, and UTC day.
+
+```bash
+python3 codex_usage.py --days 7
+python3 codex_usage.py --start 2026-08-11 --end 2026-08-18
+python3 codex_usage.py --days 7 --format json
+```
+
+Primary interactive and `codex exec` sessions are separated. When Codex stores
+a custom subagent role in session metadata, it appears as `subagent:<role>`.
+Bare dates use the machine's local timezone. Date filtering applies to
+usage-event timestamps, so a long-running session is
+counted only for model calls that occurred inside the requested window. Raw
+rollouts can contain prompts, file contents, and command output; the analyzer
+reads them locally and prints aggregate counts only.
 
 ## What a month cost
 
@@ -76,6 +98,10 @@ Caching is the only thing keeping it sane — without it the same work lists at
   re-read every turn. Reports `unique` vs `re-read` tokens per activity (reasoning
   is the biggest re-read line). The replay is scaled to the measured billed input
   (exact); the per-activity split is a model.
+- **`codex_usage.py`** — exact logged Codex token usage over a date window,
+  split by model, primary/subagent type, model × agent type, and day. Uses only
+  the Python standard library. `python3 codex_usage.py --days 7` for the last
+  week; add `--format json` for machine-readable output.
 - **`backup_sessions.py`** — incremental backup of session JSONLs to S3 (uses
   `aws s3 sync --size-only`, so only new/grown files transfer). Same bucket can
   hold sessions from many people and/or headless agent boxes — each at their own
