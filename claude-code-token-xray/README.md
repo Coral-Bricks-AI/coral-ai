@@ -31,6 +31,7 @@ python3 token_time_breakdown.py
 python3 cost.py
 python3 main_vs_sidecar.py
 python3 reread_breakdown.py
+python3 speed.py            # stdlib only, tiktoken not needed
 python3 codex_usage.py --days 7  # Codex: exact usage by model and agent type
 ```
 
@@ -98,6 +99,15 @@ Caching is the only thing keeping it sane — without it the same work lists at
   re-read every turn. Reports `unique` vs `re-read` tokens per activity (reasoning
   is the biggest re-read line). The replay is scaled to the measured billed input
   (exact); the per-activity split is a model.
+- **`speed.py`** — per-model generation speed over a date window (default 30
+  days): distributions (p10–p90) of output tok/s per assistant turn, p50
+  request length (input = fresh + cache-read + cache-write) and p50 output
+  length, plus *estimated* TTFT. Leans on a logging quirk: one JSONL entry is appended per
+  content block as it finishes streaming, so a turn yields request-sent /
+  first-block-done / last-block-done timestamps. tok/s is end-to-end (includes
+  TTFT and thinking); TTFT is first-block latency minus the first block's own
+  decode time at the turn's measured decode rate — an estimate, not a
+  measurement. `python3 speed.py 7` for the last week.
 - **`codex_usage.py`** — exact logged Codex token usage over a date window,
   split by model, primary/subagent type, model × agent type, and day. Uses only
   the Python standard library. `python3 codex_usage.py --days 7` for the last
