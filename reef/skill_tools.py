@@ -53,12 +53,31 @@ def _do_invoke_skill_fn(
     Per-field type / pattern validation would need a JSON-Schema
     library and the underlying callables already do their own
     type-coercion.
+
+    Applies any :func:`~reef.decorators.time_bounded` declaration on
+    the inner callable using the current-run constraints. From
+    :func:`~reef.react.run_react`'s perspective the outer tool is
+    ``invoke_skill_fn`` and its ``fn`` carries no ``__time_bound__`` --
+    so if we didn't reach through to the inner skill fn here, the
+    ``@time_bounded`` decorator would be dead metadata for anything
+    dispatched via skill_fn. Budget accounting stays on the outer
+    ``invoke_skill_fn`` call (already decremented by the enforcer's
+    ``before_tool_call``); this inner application is asof-only and
+    covers the ``inject`` / ``clamp`` / ``validate`` arg mutation plus
+    the ``filter_field`` post-filter on the result.
     """
     # Late import: the registry contents depend on the consumer's
     # impl modules having been imported, which only happens after the
     # folder loader runs. Import here so framework load doesn't pull
     # any specific skill folder in.
     from reef import skill_fn as _skill_fn  # noqa: PLC0415
+    from reef.context import current_constraints  # noqa: PLC0415
+    from reef.enforcement import (  # noqa: PLC0415
+        ConstraintViolation,
+        apply_time_bound,
+        filter_rows_by_date,
+        get_time_bound,
+    )
 
     if not isinstance(skill_id, str) or not skill_id:
         return {"error": "skill_id must be a non-empty string"}
@@ -84,14 +103,47 @@ def _do_invoke_skill_fn(
             )
         }
 
+    # Apply the inner ``@time_bounded`` contract (if any) against the
+    # current run's constraints. See docstring for why we do this here
+    # rather than defer to run_react's enforcer.
+    inner_label = f"{skill_id}.{fn}"
+    constraints = current_constraints()
+    bound = get_time_bound(entry.fn)
+    if constraints is not None and constraints.asof is not None and bound is not None:
+        try:
+            apply_time_bound(inner_label, args, bound, constraints.asof)
+        except ConstraintViolation as exc:
+            return {
+                "error": f"{type(exc).__name__}: {exc!s}",
+                "skill_id": skill_id,
+                "fn": fn,
+                "arguments": args,
+                "constraint_violation": True,
+            }
+
     try:
-        return entry.fn(**args)
+        result = entry.fn(**args)
     except TypeError as exc:
         return {
             "error": (
                 f"{skill_id}.{fn} arg mismatch: {exc!s}"
             )
         }
+
+    # Post-filter rows dated past asof when the skill declares a
+    # ``filter_field``. Same helper ``LocalEnforcer.after_tool_call``
+    # uses, called here as well because that path only sees the outer
+    # ``invoke_skill_fn`` result -- the inner envelope wrapped as-is --
+    # so per-row filtering has to happen on this side.
+    if (
+        constraints is not None
+        and constraints.asof is not None
+        and bound is not None
+        and bound.filter_field is not None
+    ):
+        result = filter_rows_by_date(result, bound.filter_field, constraints.asof)
+
+    return result
 
 
 INVOKE_SKILL_FN = Tool(

@@ -218,6 +218,52 @@ def _try_parse_date(value: Any) -> Optional[date]:
         return None
 
 
+def apply_time_bound(
+    tool_label: str,
+    args: dict[str, Any],
+    bound: TimeBound,
+    asof: date,
+) -> None:
+    """Mutate ``args[bound.asof_arg]`` in place per ``bound.mode``.
+
+    The single implementation of the three modes. Two call sites share
+    it, and they are deliberately different venues:
+
+    - :meth:`LocalEnforcer._apply_declared`, on the outer tool dispatch.
+    - :func:`reef.skill_tools._do_invoke_skill_fn`, reaching through
+      ``invoke_skill_fn`` to the inner ``@skill_fn`` callable, which the
+      enforcer never sees.
+
+    Kept free of enforcer state (no budget, no ``on_violation`` hook) so
+    the skill_fn path can apply the asof contract without the
+    accounting side effects of a second ``before_tool_call``. Callers
+    that need those wrap this and route the exception themselves.
+
+    Raises :class:`AsofViolation` under ``mode="validate"`` when the
+    model's value is past ``asof``.
+    """
+    arg = bound.asof_arg
+    current = args.get(arg)
+    if bound.mode == "inject" or current is None:
+        args[arg] = asof.isoformat()
+        return
+    parsed = _try_parse_date(current)
+    if parsed is None:
+        # Model passed something we can't compare to -- safest is to
+        # overwrite with the asof. Equivalent to inject.
+        args[arg] = asof.isoformat()
+        return
+    if bound.mode == "clamp":
+        args[arg] = min(parsed, asof).isoformat()
+        return
+    # validate
+    if parsed > asof:
+        raise AsofViolation(
+            f"{tool_label}: arg {arg!r}={current!r} is past "
+            f"asof={asof.isoformat()}. Use asof or an earlier date."
+        )
+
+
 @dataclass
 class LocalEnforcer:
     """Single-process reference enforcer.
@@ -320,7 +366,7 @@ class LocalEnforcer:
         bound = self._resolve_bound(tool_name, result)
         if bound is None or bound.filter_field is None:
             return result
-        return _filter_rows_by_date(result, bound.filter_field, c.asof)
+        return filter_rows_by_date(result, bound.filter_field, c.asof)
 
     # ---- helpers ------------------------------------------------------
 
@@ -354,26 +400,14 @@ class LocalEnforcer:
         bound: TimeBound,
         asof: date,
     ) -> None:
-        arg = bound.asof_arg
-        current = args.get(arg)
-        if bound.mode == "inject" or current is None:
-            args[arg] = asof.isoformat()
-            return
-        parsed = _try_parse_date(current)
-        if parsed is None:
-            # Model passed something we can't compare to -- safest is to
-            # overwrite with the asof. Equivalent to inject.
-            args[arg] = asof.isoformat()
-            return
-        if bound.mode == "clamp":
-            args[arg] = min(parsed, asof).isoformat()
-            return
-        # validate
-        if parsed > asof:
-            self._raise(AsofViolation(
-                f"{tool_name}: arg {arg!r}={current!r} is past "
-                f"asof={asof.isoformat()}. Use asof or an earlier date."
-            ))
+        # Mode semantics live in the module-level ``apply_time_bound``
+        # so the skill_fn dispatch path applies the identical contract.
+        # Re-raise through ``_raise`` to keep the ``on_violation`` hook
+        # and the AuditingEnforcer event log on this path.
+        try:
+            apply_time_bound(tool_name, args, bound, asof)
+        except ConstraintViolation as exc:
+            self._raise(exc)
 
     def _resolve_bound(self, tool_name: str, result: Any) -> Optional[TimeBound]:
         # ``_last_bound`` was captured at before_tool_call from
@@ -440,7 +474,7 @@ class AuditingEnforcer(LocalEnforcer):
 # Post-filter helper
 # ---------------------------------------------------------------------------
 
-def _filter_rows_by_date(
+def filter_rows_by_date(
     result: Any, filter_field: str, asof: date,
 ) -> Any:
     """Drop rows from ``result`` whose ``filter_field`` is > ``asof``.
@@ -474,6 +508,10 @@ def _filter_rows_by_date(
     return result
 
 
+# Back-compat alias for the pre-public spelling.
+_filter_rows_by_date = filter_rows_by_date
+
+
 # ---------------------------------------------------------------------------
 # Convenience: scoped enforcer context
 # ---------------------------------------------------------------------------
@@ -504,6 +542,8 @@ __all__ = [
     "IndexNotAllowed",
     "TimeBound",
     "get_time_bound",
+    "apply_time_bound",
+    "filter_rows_by_date",
     "ConstraintEnforcer",
     "NullEnforcer",
     "LocalEnforcer",

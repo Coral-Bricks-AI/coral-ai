@@ -4,159 +4,2569 @@
     "name": "NVIDIA",
     "sector": "Semiconductors",
     "description": "Designs GPUs and accelerators for AI training and inference; data-center segment dominates revenue.",
-    "price_now": 145.20,
-    "price_1y_ago": 89.10
+    "price_now": 145.2,
+    "price_1y_ago": 89.1,
+    "price_asof": "2026-07-15",
+    "price_history": [
+      {
+        "date": "2024-07-15",
+        "price": 61.84
+      },
+      {
+        "date": "2024-08-15",
+        "price": 64.41
+      },
+      {
+        "date": "2024-09-15",
+        "price": 66.13
+      },
+      {
+        "date": "2024-10-15",
+        "price": 68.07
+      },
+      {
+        "date": "2024-11-15",
+        "price": 70.78
+      },
+      {
+        "date": "2024-12-15",
+        "price": 74.07
+      },
+      {
+        "date": "2025-01-15",
+        "price": 75.47
+      },
+      {
+        "date": "2025-02-15",
+        "price": 76.67
+      },
+      {
+        "date": "2025-03-15",
+        "price": 80.24
+      },
+      {
+        "date": "2025-04-15",
+        "price": 82.27
+      },
+      {
+        "date": "2025-05-15",
+        "price": 83.55
+      },
+      {
+        "date": "2025-06-15",
+        "price": 86.48
+      },
+      {
+        "date": "2025-07-15",
+        "price": 89.1
+      },
+      {
+        "date": "2025-08-15",
+        "price": 94.32
+      },
+      {
+        "date": "2025-09-15",
+        "price": 98.44
+      },
+      {
+        "date": "2025-10-15",
+        "price": 103.03
+      },
+      {
+        "date": "2025-11-15",
+        "price": 107.72
+      },
+      {
+        "date": "2025-12-15",
+        "price": 114.15
+      },
+      {
+        "date": "2026-01-15",
+        "price": 118.4
+      },
+      {
+        "date": "2026-02-15",
+        "price": 120.79
+      },
+      {
+        "date": "2026-03-15",
+        "price": 125.19
+      },
+      {
+        "date": "2026-04-15",
+        "price": 132.21
+      },
+      {
+        "date": "2026-05-15",
+        "price": 135.27
+      },
+      {
+        "date": "2026-06-15",
+        "price": 140.4
+      },
+      {
+        "date": "2026-07-15",
+        "price": 145.2
+      }
+    ],
+    "filings": [
+      {
+        "filing_date": "2025-08-28",
+        "form_type": "10-Q",
+        "headline": "FY26 Q2: data-center revenue +154% YoY."
+      },
+      {
+        "filing_date": "2025-11-20",
+        "form_type": "10-Q",
+        "headline": "FY26 Q3: Blackwell ramp on track; supply constrained."
+      },
+      {
+        "filing_date": "2026-02-26",
+        "form_type": "10-K",
+        "headline": "FY26 annual: full-year data-center revenue passes $115B."
+      },
+      {
+        "filing_date": "2026-05-28",
+        "form_type": "10-Q",
+        "headline": "FY27 Q1: sovereign-AI orders lift guidance."
+      }
+    ]
   },
   {
     "ticker": "AAPL",
     "name": "Apple",
     "sector": "Consumer Electronics",
     "description": "iPhone hardware franchise plus a growing services segment (App Store, iCloud, advertising).",
-    "price_now": 228.40,
-    "price_1y_ago": 194.30
+    "price_now": 228.4,
+    "price_1y_ago": 194.3,
+    "price_asof": "2026-07-15",
+    "price_history": [
+      {
+        "date": "2024-07-15",
+        "price": 173.04
+      },
+      {
+        "date": "2024-08-15",
+        "price": 173.46
+      },
+      {
+        "date": "2024-09-15",
+        "price": 176.53
+      },
+      {
+        "date": "2024-10-15",
+        "price": 180.95
+      },
+      {
+        "date": "2024-11-15",
+        "price": 182.64
+      },
+      {
+        "date": "2024-12-15",
+        "price": 182.26
+      },
+      {
+        "date": "2025-01-15",
+        "price": 183.67
+      },
+      {
+        "date": "2025-02-15",
+        "price": 184.65
+      },
+      {
+        "date": "2025-03-15",
+        "price": 187.99
+      },
+      {
+        "date": "2025-04-15",
+        "price": 191.45
+      },
+      {
+        "date": "2025-05-15",
+        "price": 189.95
+      },
+      {
+        "date": "2025-06-15",
+        "price": 192.7
+      },
+      {
+        "date": "2025-07-15",
+        "price": 194.3
+      },
+      {
+        "date": "2025-08-15",
+        "price": 199.23
+      },
+      {
+        "date": "2025-09-15",
+        "price": 199.86
+      },
+      {
+        "date": "2025-10-15",
+        "price": 203.05
+      },
+      {
+        "date": "2025-11-15",
+        "price": 204.16
+      },
+      {
+        "date": "2025-12-15",
+        "price": 208.87
+      },
+      {
+        "date": "2026-01-15",
+        "price": 211.6
+      },
+      {
+        "date": "2026-02-15",
+        "price": 213.17
+      },
+      {
+        "date": "2026-03-15",
+        "price": 214.48
+      },
+      {
+        "date": "2026-04-15",
+        "price": 221.51
+      },
+      {
+        "date": "2026-05-15",
+        "price": 225.21
+      },
+      {
+        "date": "2026-06-15",
+        "price": 226.14
+      },
+      {
+        "date": "2026-07-15",
+        "price": 228.4
+      }
+    ],
+    "filings": [
+      {
+        "filing_date": "2025-10-31",
+        "form_type": "10-K",
+        "headline": "FY25 annual: services revenue $105B; iPhone units flat."
+      },
+      {
+        "filing_date": "2026-02-01",
+        "form_type": "10-Q",
+        "headline": "FY26 Q1: holiday quarter beats on services."
+      },
+      {
+        "filing_date": "2026-05-02",
+        "form_type": "10-Q",
+        "headline": "FY26 Q2: China revenue stabilizes."
+      }
+    ]
   },
   {
     "ticker": "MSFT",
     "name": "Microsoft",
     "sector": "Software",
     "description": "Productivity (Office, Teams), cloud (Azure), and an emerging AI platform business.",
-    "price_now": 445.10,
-    "price_1y_ago": 410.50
+    "price_now": 445.1,
+    "price_1y_ago": 410.5,
+    "price_asof": "2026-07-15",
+    "price_history": [
+      {
+        "date": "2024-07-15",
+        "price": 387.63
+      },
+      {
+        "date": "2024-08-15",
+        "price": 391.54
+      },
+      {
+        "date": "2024-09-15",
+        "price": 394.67
+      },
+      {
+        "date": "2024-10-15",
+        "price": 388.57
+      },
+      {
+        "date": "2024-11-15",
+        "price": 397.39
+      },
+      {
+        "date": "2024-12-15",
+        "price": 395.68
+      },
+      {
+        "date": "2025-01-15",
+        "price": 399.06
+      },
+      {
+        "date": "2025-02-15",
+        "price": 402.71
+      },
+      {
+        "date": "2025-03-15",
+        "price": 402.53
+      },
+      {
+        "date": "2025-04-15",
+        "price": 407.67
+      },
+      {
+        "date": "2025-05-15",
+        "price": 402.16
+      },
+      {
+        "date": "2025-06-15",
+        "price": 409.99
+      },
+      {
+        "date": "2025-07-15",
+        "price": 410.5
+      },
+      {
+        "date": "2025-08-15",
+        "price": 410.9
+      },
+      {
+        "date": "2025-09-15",
+        "price": 415.8
+      },
+      {
+        "date": "2025-10-15",
+        "price": 418.42
+      },
+      {
+        "date": "2025-11-15",
+        "price": 418.15
+      },
+      {
+        "date": "2025-12-15",
+        "price": 419.6
+      },
+      {
+        "date": "2026-01-15",
+        "price": 428.9
+      },
+      {
+        "date": "2026-02-15",
+        "price": 435.18
+      },
+      {
+        "date": "2026-03-15",
+        "price": 439.43
+      },
+      {
+        "date": "2026-04-15",
+        "price": 439.49
+      },
+      {
+        "date": "2026-05-15",
+        "price": 436.4
+      },
+      {
+        "date": "2026-06-15",
+        "price": 436.52
+      },
+      {
+        "date": "2026-07-15",
+        "price": 445.1
+      }
+    ],
+    "filings": [
+      {
+        "filing_date": "2025-07-30",
+        "form_type": "10-K",
+        "headline": "FY25 annual: Azure grew 29%; AI services $12B run-rate."
+      },
+      {
+        "filing_date": "2025-10-29",
+        "form_type": "10-Q",
+        "headline": "FY26 Q1: cloud capex guided higher."
+      },
+      {
+        "filing_date": "2026-01-28",
+        "form_type": "10-Q",
+        "headline": "FY26 Q2: Copilot seats cross 20M."
+      },
+      {
+        "filing_date": "2026-04-29",
+        "form_type": "10-Q",
+        "headline": "FY26 Q3: OpenAI partnership reaffirmed."
+      }
+    ]
   },
   {
     "ticker": "GOOGL",
     "name": "Alphabet",
     "sector": "Internet",
     "description": "Search advertising dominant; YouTube, Google Cloud, and Waymo as growth optionalities.",
-    "price_now": 185.20,
-    "price_1y_ago": 172.10
+    "price_now": 185.2,
+    "price_1y_ago": 172.1,
+    "price_asof": "2026-07-15",
+    "price_history": [
+      {
+        "date": "2024-07-15",
+        "price": 163.39
+      },
+      {
+        "date": "2024-08-15",
+        "price": 163.71
+      },
+      {
+        "date": "2024-09-15",
+        "price": 163.75
+      },
+      {
+        "date": "2024-10-15",
+        "price": 164.0
+      },
+      {
+        "date": "2024-11-15",
+        "price": 168.08
+      },
+      {
+        "date": "2024-12-15",
+        "price": 169.34
+      },
+      {
+        "date": "2025-01-15",
+        "price": 167.75
+      },
+      {
+        "date": "2025-02-15",
+        "price": 166.63
+      },
+      {
+        "date": "2025-03-15",
+        "price": 170.89
+      },
+      {
+        "date": "2025-04-15",
+        "price": 168.27
+      },
+      {
+        "date": "2025-05-15",
+        "price": 168.42
+      },
+      {
+        "date": "2025-06-15",
+        "price": 170.53
+      },
+      {
+        "date": "2025-07-15",
+        "price": 172.1
+      },
+      {
+        "date": "2025-08-15",
+        "price": 173.1
+      },
+      {
+        "date": "2025-09-15",
+        "price": 172.22
+      },
+      {
+        "date": "2025-10-15",
+        "price": 173.39
+      },
+      {
+        "date": "2025-11-15",
+        "price": 176.73
+      },
+      {
+        "date": "2025-12-15",
+        "price": 175.82
+      },
+      {
+        "date": "2026-01-15",
+        "price": 178.9
+      },
+      {
+        "date": "2026-02-15",
+        "price": 179.86
+      },
+      {
+        "date": "2026-03-15",
+        "price": 182.23
+      },
+      {
+        "date": "2026-04-15",
+        "price": 182.15
+      },
+      {
+        "date": "2026-05-15",
+        "price": 180.49
+      },
+      {
+        "date": "2026-06-15",
+        "price": 186.7
+      },
+      {
+        "date": "2026-07-15",
+        "price": 185.2
+      }
+    ],
+    "filings": [
+      {
+        "filing_date": "2025-10-28",
+        "form_type": "10-Q",
+        "headline": "Q3: search share stable; Cloud +32%."
+      },
+      {
+        "filing_date": "2026-02-04",
+        "form_type": "10-K",
+        "headline": "FY25 annual: Waymo rides 3x YoY."
+      },
+      {
+        "filing_date": "2026-04-24",
+        "form_type": "10-Q",
+        "headline": "Q1: Gemini answers monetization pilot."
+      }
+    ]
   },
   {
     "ticker": "AMZN",
     "name": "Amazon",
     "sector": "Internet",
     "description": "E-commerce marketplace with AWS as the primary profit engine.",
-    "price_now": 215.30,
-    "price_1y_ago": 185.20
+    "price_now": 215.3,
+    "price_1y_ago": 185.2,
+    "price_asof": "2026-07-15",
+    "price_history": [
+      {
+        "date": "2024-07-15",
+        "price": 166.28
+      },
+      {
+        "date": "2024-08-15",
+        "price": 169.18
+      },
+      {
+        "date": "2024-09-15",
+        "price": 167.9
+      },
+      {
+        "date": "2024-10-15",
+        "price": 173.07
+      },
+      {
+        "date": "2024-11-15",
+        "price": 173.11
+      },
+      {
+        "date": "2024-12-15",
+        "price": 174.09
+      },
+      {
+        "date": "2025-01-15",
+        "price": 175.74
+      },
+      {
+        "date": "2025-02-15",
+        "price": 179.13
+      },
+      {
+        "date": "2025-03-15",
+        "price": 177.79
+      },
+      {
+        "date": "2025-04-15",
+        "price": 178.34
+      },
+      {
+        "date": "2025-05-15",
+        "price": 182.66
+      },
+      {
+        "date": "2025-06-15",
+        "price": 182.72
+      },
+      {
+        "date": "2025-07-15",
+        "price": 185.2
+      },
+      {
+        "date": "2025-08-15",
+        "price": 185.66
+      },
+      {
+        "date": "2025-09-15",
+        "price": 189.94
+      },
+      {
+        "date": "2025-10-15",
+        "price": 191.99
+      },
+      {
+        "date": "2025-11-15",
+        "price": 196.51
+      },
+      {
+        "date": "2025-12-15",
+        "price": 196.04
+      },
+      {
+        "date": "2026-01-15",
+        "price": 201.0
+      },
+      {
+        "date": "2026-02-15",
+        "price": 205.91
+      },
+      {
+        "date": "2026-03-15",
+        "price": 202.76
+      },
+      {
+        "date": "2026-04-15",
+        "price": 208.13
+      },
+      {
+        "date": "2026-05-15",
+        "price": 213.4
+      },
+      {
+        "date": "2026-06-15",
+        "price": 212.0
+      },
+      {
+        "date": "2026-07-15",
+        "price": 215.3
+      }
+    ],
+    "filings": [
+      {
+        "filing_date": "2025-10-30",
+        "form_type": "10-Q",
+        "headline": "Q3: AWS +19%; retail margins expand."
+      },
+      {
+        "filing_date": "2026-02-03",
+        "form_type": "10-K",
+        "headline": "FY25 annual: Trainium adoption accelerates."
+      },
+      {
+        "filing_date": "2026-05-01",
+        "form_type": "10-Q",
+        "headline": "Q1: same-day delivery footprint doubles."
+      }
+    ]
   },
   {
     "ticker": "META",
     "name": "Meta Platforms",
     "sector": "Internet",
     "description": "Facebook and Instagram advertising; Reality Labs AR/VR investment offset by ad strength.",
-    "price_now": 580.40,
-    "price_1y_ago": 480.10
+    "price_now": 580.4,
+    "price_1y_ago": 480.1,
+    "price_asof": "2026-07-15",
+    "price_history": [
+      {
+        "date": "2024-07-15",
+        "price": 418.85
+      },
+      {
+        "date": "2024-08-15",
+        "price": 424.88
+      },
+      {
+        "date": "2024-09-15",
+        "price": 425.88
+      },
+      {
+        "date": "2024-10-15",
+        "price": 438.78
+      },
+      {
+        "date": "2024-11-15",
+        "price": 436.8
+      },
+      {
+        "date": "2024-12-15",
+        "price": 438.91
+      },
+      {
+        "date": "2025-01-15",
+        "price": 449.48
+      },
+      {
+        "date": "2025-02-15",
+        "price": 461.33
+      },
+      {
+        "date": "2025-03-15",
+        "price": 462.02
+      },
+      {
+        "date": "2025-04-15",
+        "price": 462.56
+      },
+      {
+        "date": "2025-05-15",
+        "price": 467.61
+      },
+      {
+        "date": "2025-06-15",
+        "price": 471.67
+      },
+      {
+        "date": "2025-07-15",
+        "price": 480.1
+      },
+      {
+        "date": "2025-08-15",
+        "price": 495.07
+      },
+      {
+        "date": "2025-09-15",
+        "price": 492.2
+      },
+      {
+        "date": "2025-10-15",
+        "price": 508.07
+      },
+      {
+        "date": "2025-11-15",
+        "price": 514.5
+      },
+      {
+        "date": "2025-12-15",
+        "price": 526.06
+      },
+      {
+        "date": "2026-01-15",
+        "price": 530.2
+      },
+      {
+        "date": "2026-02-15",
+        "price": 540.08
+      },
+      {
+        "date": "2026-03-15",
+        "price": 544.63
+      },
+      {
+        "date": "2026-04-15",
+        "price": 560.48
+      },
+      {
+        "date": "2026-05-15",
+        "price": 569.4
+      },
+      {
+        "date": "2026-06-15",
+        "price": 571.7
+      },
+      {
+        "date": "2026-07-15",
+        "price": 580.4
+      }
+    ],
+    "filings": [
+      {
+        "filing_date": "2025-10-30",
+        "form_type": "10-Q",
+        "headline": "Q3: ad ARPU +14%; Reality Labs loss narrows."
+      },
+      {
+        "filing_date": "2026-01-29",
+        "form_type": "10-Q",
+        "headline": "Q4: Llama fleet inference costs down 40%."
+      },
+      {
+        "filing_date": "2026-04-30",
+        "form_type": "10-Q",
+        "headline": "Q1: creator tools drive engagement gains."
+      }
+    ]
   },
   {
     "ticker": "TSLA",
     "name": "Tesla",
     "sector": "Automotive",
     "description": "Electric vehicles and energy storage; autonomy and robotaxi narrative drives multiple.",
-    "price_now": 260.50,
-    "price_1y_ago": 235.80
+    "price_now": 260.5,
+    "price_1y_ago": 235.8,
+    "price_asof": "2026-07-15",
+    "price_history": [
+      {
+        "date": "2024-07-15",
+        "price": 219.69
+      },
+      {
+        "date": "2024-08-15",
+        "price": 219.55
+      },
+      {
+        "date": "2024-09-15",
+        "price": 220.95
+      },
+      {
+        "date": "2024-10-15",
+        "price": 221.27
+      },
+      {
+        "date": "2024-11-15",
+        "price": 221.96
+      },
+      {
+        "date": "2024-12-15",
+        "price": 225.41
+      },
+      {
+        "date": "2025-01-15",
+        "price": 227.75
+      },
+      {
+        "date": "2025-02-15",
+        "price": 226.28
+      },
+      {
+        "date": "2025-03-15",
+        "price": 231.18
+      },
+      {
+        "date": "2025-04-15",
+        "price": 234.24
+      },
+      {
+        "date": "2025-05-15",
+        "price": 231.35
+      },
+      {
+        "date": "2025-06-15",
+        "price": 232.67
+      },
+      {
+        "date": "2025-07-15",
+        "price": 235.8
+      },
+      {
+        "date": "2025-08-15",
+        "price": 236.74
+      },
+      {
+        "date": "2025-09-15",
+        "price": 237.3
+      },
+      {
+        "date": "2025-10-15",
+        "price": 238.83
+      },
+      {
+        "date": "2025-11-15",
+        "price": 241.25
+      },
+      {
+        "date": "2025-12-15",
+        "price": 247.83
+      },
+      {
+        "date": "2026-01-15",
+        "price": 248.1
+      },
+      {
+        "date": "2026-02-15",
+        "price": 252.8
+      },
+      {
+        "date": "2026-03-15",
+        "price": 250.86
+      },
+      {
+        "date": "2026-04-15",
+        "price": 250.95
+      },
+      {
+        "date": "2026-05-15",
+        "price": 257.65
+      },
+      {
+        "date": "2026-06-15",
+        "price": 259.76
+      },
+      {
+        "date": "2026-07-15",
+        "price": 260.5
+      }
+    ],
+    "filings": [
+      {
+        "filing_date": "2025-10-22",
+        "form_type": "10-Q",
+        "headline": "Q3: energy storage revenue +52%."
+      },
+      {
+        "filing_date": "2026-01-24",
+        "form_type": "10-K",
+        "headline": "FY25 annual: robotaxi pilot expanded to 8 cities."
+      },
+      {
+        "filing_date": "2026-04-23",
+        "form_type": "10-Q",
+        "headline": "Q1: Cybertruck margins turn positive."
+      }
+    ]
   },
   {
     "ticker": "NFLX",
     "name": "Netflix",
     "sector": "Media",
     "description": "Subscription streaming with ad-tier growth and live-event experimentation.",
-    "price_now": 720.30,
-    "price_1y_ago": 610.20
+    "price_now": 720.3,
+    "price_1y_ago": 610.2,
+    "price_asof": "2026-07-15",
+    "price_history": [
+      {
+        "date": "2024-07-15",
+        "price": 541.77
+      },
+      {
+        "date": "2024-08-15",
+        "price": 546.62
+      },
+      {
+        "date": "2024-09-15",
+        "price": 552.43
+      },
+      {
+        "date": "2024-10-15",
+        "price": 555.1
+      },
+      {
+        "date": "2024-11-15",
+        "price": 557.99
+      },
+      {
+        "date": "2024-12-15",
+        "price": 564.67
+      },
+      {
+        "date": "2025-01-15",
+        "price": 575.99
+      },
+      {
+        "date": "2025-02-15",
+        "price": 573.82
+      },
+      {
+        "date": "2025-03-15",
+        "price": 580.86
+      },
+      {
+        "date": "2025-04-15",
+        "price": 600.45
+      },
+      {
+        "date": "2025-05-15",
+        "price": 598.55
+      },
+      {
+        "date": "2025-06-15",
+        "price": 606.22
+      },
+      {
+        "date": "2025-07-15",
+        "price": 610.2
+      },
+      {
+        "date": "2025-08-15",
+        "price": 623.35
+      },
+      {
+        "date": "2025-09-15",
+        "price": 621.35
+      },
+      {
+        "date": "2025-10-15",
+        "price": 630.26
+      },
+      {
+        "date": "2025-11-15",
+        "price": 649.72
+      },
+      {
+        "date": "2025-12-15",
+        "price": 646.89
+      },
+      {
+        "date": "2026-01-15",
+        "price": 665.1
+      },
+      {
+        "date": "2026-02-15",
+        "price": 671.45
+      },
+      {
+        "date": "2026-03-15",
+        "price": 680.94
+      },
+      {
+        "date": "2026-04-15",
+        "price": 688.49
+      },
+      {
+        "date": "2026-05-15",
+        "price": 703.31
+      },
+      {
+        "date": "2026-06-15",
+        "price": 707.67
+      },
+      {
+        "date": "2026-07-15",
+        "price": 720.3
+      }
+    ],
+    "filings": [
+      {
+        "filing_date": "2025-10-16",
+        "form_type": "10-Q",
+        "headline": "Q3: ad-tier subs cross 100M."
+      },
+      {
+        "filing_date": "2026-01-21",
+        "form_type": "10-K",
+        "headline": "FY25 annual: live-event slate lifts ARPU."
+      },
+      {
+        "filing_date": "2026-04-17",
+        "form_type": "10-Q",
+        "headline": "Q1: password-sharing tailwind now lapping."
+      }
+    ]
   },
   {
     "ticker": "AMD",
     "name": "Advanced Micro Devices",
     "sector": "Semiconductors",
     "description": "CPUs (Ryzen, EPYC) and GPUs (Instinct) competing in data-center AI workloads.",
-    "price_now": 185.40,
-    "price_1y_ago": 155.20
+    "price_now": 185.4,
+    "price_1y_ago": 155.2,
+    "price_asof": "2026-07-15",
+    "price_history": [
+      {
+        "date": "2024-07-15",
+        "price": 136.59
+      },
+      {
+        "date": "2024-08-15",
+        "price": 136.1
+      },
+      {
+        "date": "2024-09-15",
+        "price": 141.52
+      },
+      {
+        "date": "2024-10-15",
+        "price": 141.28
+      },
+      {
+        "date": "2024-11-15",
+        "price": 143.29
+      },
+      {
+        "date": "2024-12-15",
+        "price": 146.42
+      },
+      {
+        "date": "2025-01-15",
+        "price": 145.89
+      },
+      {
+        "date": "2025-02-15",
+        "price": 147.26
+      },
+      {
+        "date": "2025-03-15",
+        "price": 149.5
+      },
+      {
+        "date": "2025-04-15",
+        "price": 148.39
+      },
+      {
+        "date": "2025-05-15",
+        "price": 151.56
+      },
+      {
+        "date": "2025-06-15",
+        "price": 152.9
+      },
+      {
+        "date": "2025-07-15",
+        "price": 155.2
+      },
+      {
+        "date": "2025-08-15",
+        "price": 155.94
+      },
+      {
+        "date": "2025-09-15",
+        "price": 160.38
+      },
+      {
+        "date": "2025-10-15",
+        "price": 161.58
+      },
+      {
+        "date": "2025-11-15",
+        "price": 165.56
+      },
+      {
+        "date": "2025-12-15",
+        "price": 167.98
+      },
+      {
+        "date": "2026-01-15",
+        "price": 170.3
+      },
+      {
+        "date": "2026-02-15",
+        "price": 170.93
+      },
+      {
+        "date": "2026-03-15",
+        "price": 176.56
+      },
+      {
+        "date": "2026-04-15",
+        "price": 179.81
+      },
+      {
+        "date": "2026-05-15",
+        "price": 181.36
+      },
+      {
+        "date": "2026-06-15",
+        "price": 180.11
+      },
+      {
+        "date": "2026-07-15",
+        "price": 185.4
+      }
+    ],
+    "filings": [
+      {
+        "filing_date": "2025-10-29",
+        "form_type": "10-Q",
+        "headline": "Q3: MI325X launch drives DC ramp."
+      },
+      {
+        "filing_date": "2026-02-04",
+        "form_type": "10-K",
+        "headline": "FY25 annual: data-center segment doubles."
+      },
+      {
+        "filing_date": "2026-04-29",
+        "form_type": "10-Q",
+        "headline": "Q1: hyperscaler design wins broaden."
+      }
+    ]
   },
   {
     "ticker": "INTC",
     "name": "Intel",
     "sector": "Semiconductors",
     "description": "Incumbent CPU maker pivoting to foundry; turnaround under a multi-year capex plan.",
-    "price_now": 32.10,
-    "price_1y_ago": 42.30
+    "price_now": 32.1,
+    "price_1y_ago": 42.3,
+    "price_asof": "2026-07-15",
+    "price_history": [
+      {
+        "date": "2024-07-15",
+        "price": 50.89
+      },
+      {
+        "date": "2024-08-15",
+        "price": 50.67
+      },
+      {
+        "date": "2024-09-15",
+        "price": 49.49
+      },
+      {
+        "date": "2024-10-15",
+        "price": 48.36
+      },
+      {
+        "date": "2024-11-15",
+        "price": 47.7
+      },
+      {
+        "date": "2024-12-15",
+        "price": 47.81
+      },
+      {
+        "date": "2025-01-15",
+        "price": 46.59
+      },
+      {
+        "date": "2025-02-15",
+        "price": 46.4
+      },
+      {
+        "date": "2025-03-15",
+        "price": 45.79
+      },
+      {
+        "date": "2025-04-15",
+        "price": 43.75
+      },
+      {
+        "date": "2025-05-15",
+        "price": 43.15
+      },
+      {
+        "date": "2025-06-15",
+        "price": 43.62
+      },
+      {
+        "date": "2025-07-15",
+        "price": 42.3
+      },
+      {
+        "date": "2025-08-15",
+        "price": 41.17
+      },
+      {
+        "date": "2025-09-15",
+        "price": 40.12
+      },
+      {
+        "date": "2025-10-15",
+        "price": 39.48
+      },
+      {
+        "date": "2025-11-15",
+        "price": 38.24
+      },
+      {
+        "date": "2025-12-15",
+        "price": 38.06
+      },
+      {
+        "date": "2026-01-15",
+        "price": 36.8
+      },
+      {
+        "date": "2026-02-15",
+        "price": 35.88
+      },
+      {
+        "date": "2026-03-15",
+        "price": 34.88
+      },
+      {
+        "date": "2026-04-15",
+        "price": 34.74
+      },
+      {
+        "date": "2026-05-15",
+        "price": 33.73
+      },
+      {
+        "date": "2026-06-15",
+        "price": 32.39
+      },
+      {
+        "date": "2026-07-15",
+        "price": 32.1
+      }
+    ],
+    "filings": [
+      {
+        "filing_date": "2025-10-24",
+        "form_type": "10-Q",
+        "headline": "Q3: 18A yield update; foundry losses persist."
+      },
+      {
+        "filing_date": "2026-01-30",
+        "form_type": "10-K",
+        "headline": "FY25 annual: dividend suspended pending turnaround."
+      },
+      {
+        "filing_date": "2026-04-24",
+        "form_type": "10-Q",
+        "headline": "Q1: foundry customer signed under 18A."
+      }
+    ]
   },
   {
     "ticker": "JPM",
     "name": "JPMorgan Chase",
     "sector": "Money-Center Bank",
     "description": "Universal bank; investment banking, consumer banking, asset management.",
-    "price_now": 215.40,
-    "price_1y_ago": 190.20
+    "price_now": 215.4,
+    "price_1y_ago": 190.2,
+    "price_asof": "2026-07-15",
+    "price_history": [
+      {
+        "date": "2024-07-15",
+        "price": 174.06
+      },
+      {
+        "date": "2024-08-15",
+        "price": 176.15
+      },
+      {
+        "date": "2024-09-15",
+        "price": 175.45
+      },
+      {
+        "date": "2024-10-15",
+        "price": 176.79
+      },
+      {
+        "date": "2024-11-15",
+        "price": 179.74
+      },
+      {
+        "date": "2024-12-15",
+        "price": 179.05
+      },
+      {
+        "date": "2025-01-15",
+        "price": 182.13
+      },
+      {
+        "date": "2025-02-15",
+        "price": 181.16
+      },
+      {
+        "date": "2025-03-15",
+        "price": 187.21
+      },
+      {
+        "date": "2025-04-15",
+        "price": 187.73
+      },
+      {
+        "date": "2025-05-15",
+        "price": 189.76
+      },
+      {
+        "date": "2025-06-15",
+        "price": 191.06
+      },
+      {
+        "date": "2025-07-15",
+        "price": 190.2
+      },
+      {
+        "date": "2025-08-15",
+        "price": 193.4
+      },
+      {
+        "date": "2025-09-15",
+        "price": 195.34
+      },
+      {
+        "date": "2025-10-15",
+        "price": 199.07
+      },
+      {
+        "date": "2025-11-15",
+        "price": 197.3
+      },
+      {
+        "date": "2025-12-15",
+        "price": 202.37
+      },
+      {
+        "date": "2026-01-15",
+        "price": 202.5
+      },
+      {
+        "date": "2026-02-15",
+        "price": 204.62
+      },
+      {
+        "date": "2026-03-15",
+        "price": 208.93
+      },
+      {
+        "date": "2026-04-15",
+        "price": 210.69
+      },
+      {
+        "date": "2026-05-15",
+        "price": 208.5
+      },
+      {
+        "date": "2026-06-15",
+        "price": 210.77
+      },
+      {
+        "date": "2026-07-15",
+        "price": 215.4
+      }
+    ],
+    "filings": [
+      {
+        "filing_date": "2025-10-11",
+        "form_type": "10-Q",
+        "headline": "Q3: NII $23B; card charge-offs stabilize."
+      },
+      {
+        "filing_date": "2026-02-20",
+        "form_type": "10-K",
+        "headline": "FY25 annual: IB fees +18%."
+      },
+      {
+        "filing_date": "2026-04-11",
+        "form_type": "10-Q",
+        "headline": "Q1: CET1 ratio 15.2%; buyback resumed."
+      }
+    ]
   },
   {
     "ticker": "BAC",
     "name": "Bank of America",
     "sector": "Money-Center Bank",
     "description": "Consumer-deposit franchise; rate-sensitive net interest income.",
-    "price_now": 42.10,
-    "price_1y_ago": 38.10
+    "price_now": 42.1,
+    "price_1y_ago": 38.1,
+    "price_asof": "2026-07-15",
+    "price_history": [
+      {
+        "date": "2024-07-15",
+        "price": 35.49
+      },
+      {
+        "date": "2024-08-15",
+        "price": 35.42
+      },
+      {
+        "date": "2024-09-15",
+        "price": 35.83
+      },
+      {
+        "date": "2024-10-15",
+        "price": 35.76
+      },
+      {
+        "date": "2024-11-15",
+        "price": 36.33
+      },
+      {
+        "date": "2024-12-15",
+        "price": 36.15
+      },
+      {
+        "date": "2025-01-15",
+        "price": 36.8
+      },
+      {
+        "date": "2025-02-15",
+        "price": 36.7
+      },
+      {
+        "date": "2025-03-15",
+        "price": 36.84
+      },
+      {
+        "date": "2025-04-15",
+        "price": 38.0
+      },
+      {
+        "date": "2025-05-15",
+        "price": 38.09
+      },
+      {
+        "date": "2025-06-15",
+        "price": 38.2
+      },
+      {
+        "date": "2025-07-15",
+        "price": 38.1
+      },
+      {
+        "date": "2025-08-15",
+        "price": 38.56
+      },
+      {
+        "date": "2025-09-15",
+        "price": 39.12
+      },
+      {
+        "date": "2025-10-15",
+        "price": 38.71
+      },
+      {
+        "date": "2025-11-15",
+        "price": 38.8
+      },
+      {
+        "date": "2025-12-15",
+        "price": 39.39
+      },
+      {
+        "date": "2026-01-15",
+        "price": 40.05
+      },
+      {
+        "date": "2026-02-15",
+        "price": 40.76
+      },
+      {
+        "date": "2026-03-15",
+        "price": 40.52
+      },
+      {
+        "date": "2026-04-15",
+        "price": 41.0
+      },
+      {
+        "date": "2026-05-15",
+        "price": 41.74
+      },
+      {
+        "date": "2026-06-15",
+        "price": 42.02
+      },
+      {
+        "date": "2026-07-15",
+        "price": 42.1
+      }
+    ],
+    "filings": [
+      {
+        "filing_date": "2025-10-15",
+        "form_type": "10-Q",
+        "headline": "Q3: deposit costs peaking; NII guide raised."
+      },
+      {
+        "filing_date": "2026-02-25",
+        "form_type": "10-K",
+        "headline": "FY25 annual: consumer banking margin expansion."
+      },
+      {
+        "filing_date": "2026-04-15",
+        "form_type": "10-Q",
+        "headline": "Q1: markets revenue up on volatility."
+      }
+    ]
   },
   {
     "ticker": "WFC",
     "name": "Wells Fargo",
     "sector": "Money-Center Bank",
     "description": "Consumer and commercial banking emerging from a regulatory asset cap.",
-    "price_now": 62.30,
-    "price_1y_ago": 54.20
+    "price_now": 62.3,
+    "price_1y_ago": 54.2,
+    "price_asof": "2026-07-15",
+    "price_history": [
+      {
+        "date": "2024-07-15",
+        "price": 49.07
+      },
+      {
+        "date": "2024-08-15",
+        "price": 49.47
+      },
+      {
+        "date": "2024-09-15",
+        "price": 49.69
+      },
+      {
+        "date": "2024-10-15",
+        "price": 50.34
+      },
+      {
+        "date": "2024-11-15",
+        "price": 51.52
+      },
+      {
+        "date": "2024-12-15",
+        "price": 51.2
+      },
+      {
+        "date": "2025-01-15",
+        "price": 51.64
+      },
+      {
+        "date": "2025-02-15",
+        "price": 52.42
+      },
+      {
+        "date": "2025-03-15",
+        "price": 52.66
+      },
+      {
+        "date": "2025-04-15",
+        "price": 53.16
+      },
+      {
+        "date": "2025-05-15",
+        "price": 53.75
+      },
+      {
+        "date": "2025-06-15",
+        "price": 53.17
+      },
+      {
+        "date": "2025-07-15",
+        "price": 54.2
+      },
+      {
+        "date": "2025-08-15",
+        "price": 54.64
+      },
+      {
+        "date": "2025-09-15",
+        "price": 55.39
+      },
+      {
+        "date": "2025-10-15",
+        "price": 55.5
+      },
+      {
+        "date": "2025-11-15",
+        "price": 56.72
+      },
+      {
+        "date": "2025-12-15",
+        "price": 58.27
+      },
+      {
+        "date": "2026-01-15",
+        "price": 58.25
+      },
+      {
+        "date": "2026-02-15",
+        "price": 59.28
+      },
+      {
+        "date": "2026-03-15",
+        "price": 59.79
+      },
+      {
+        "date": "2026-04-15",
+        "price": 59.82
+      },
+      {
+        "date": "2026-05-15",
+        "price": 61.68
+      },
+      {
+        "date": "2026-06-15",
+        "price": 61.61
+      },
+      {
+        "date": "2026-07-15",
+        "price": 62.3
+      }
+    ],
+    "filings": [
+      {
+        "filing_date": "2025-10-11",
+        "form_type": "10-Q",
+        "headline": "Q3: consent order progress; expenses down."
+      },
+      {
+        "filing_date": "2026-02-24",
+        "form_type": "10-K",
+        "headline": "FY25 annual: asset cap remains in place."
+      },
+      {
+        "filing_date": "2026-04-11",
+        "form_type": "10-Q",
+        "headline": "Q1: fee income growth broadens."
+      }
+    ]
   },
   {
     "ticker": "GS",
     "name": "Goldman Sachs",
     "sector": "Investment Bank",
     "description": "Investment banking, trading, and a growing wealth-management franchise.",
-    "price_now": 520.10,
-    "price_1y_ago": 445.30
+    "price_now": 520.1,
+    "price_1y_ago": 445.3,
+    "price_asof": "2026-07-15",
+    "price_history": [
+      {
+        "date": "2024-07-15",
+        "price": 398.45
+      },
+      {
+        "date": "2024-08-15",
+        "price": 400.94
+      },
+      {
+        "date": "2024-09-15",
+        "price": 409.95
+      },
+      {
+        "date": "2024-10-15",
+        "price": 411.27
+      },
+      {
+        "date": "2024-11-15",
+        "price": 417.12
+      },
+      {
+        "date": "2024-12-15",
+        "price": 420.4
+      },
+      {
+        "date": "2025-01-15",
+        "price": 421.88
+      },
+      {
+        "date": "2025-02-15",
+        "price": 424.84
+      },
+      {
+        "date": "2025-03-15",
+        "price": 427.42
+      },
+      {
+        "date": "2025-04-15",
+        "price": 430.95
+      },
+      {
+        "date": "2025-05-15",
+        "price": 440.65
+      },
+      {
+        "date": "2025-06-15",
+        "price": 436.06
+      },
+      {
+        "date": "2025-07-15",
+        "price": 445.3
+      },
+      {
+        "date": "2025-08-15",
+        "price": 446.8
+      },
+      {
+        "date": "2025-09-15",
+        "price": 456.34
+      },
+      {
+        "date": "2025-10-15",
+        "price": 470.5
+      },
+      {
+        "date": "2025-11-15",
+        "price": 467.01
+      },
+      {
+        "date": "2025-12-15",
+        "price": 475.57
+      },
+      {
+        "date": "2026-01-15",
+        "price": 482.7
+      },
+      {
+        "date": "2026-02-15",
+        "price": 494.66
+      },
+      {
+        "date": "2026-03-15",
+        "price": 488.16
+      },
+      {
+        "date": "2026-04-15",
+        "price": 505.17
+      },
+      {
+        "date": "2026-05-15",
+        "price": 511.83
+      },
+      {
+        "date": "2026-06-15",
+        "price": 519.8
+      },
+      {
+        "date": "2026-07-15",
+        "price": 520.1
+      }
+    ],
+    "filings": [
+      {
+        "filing_date": "2025-10-15",
+        "form_type": "10-Q",
+        "headline": "Q3: advisory fees strongest since 2021."
+      },
+      {
+        "filing_date": "2026-02-24",
+        "form_type": "10-K",
+        "headline": "FY25 annual: wealth AUM $3.1T."
+      },
+      {
+        "filing_date": "2026-04-14",
+        "form_type": "10-Q",
+        "headline": "Q1: FICC trading beats."
+      }
+    ]
   },
   {
     "ticker": "JNJ",
     "name": "Johnson & Johnson",
     "sector": "Pharmaceuticals",
     "description": "Diversified pharma; consumer-health spinoff completed.",
-    "price_now": 158.20,
-    "price_1y_ago": 148.10
+    "price_now": 158.2,
+    "price_1y_ago": 148.1,
+    "price_asof": "2026-07-15",
+    "price_history": [
+      {
+        "date": "2024-07-15",
+        "price": 141.35
+      },
+      {
+        "date": "2024-08-15",
+        "price": 139.9
+      },
+      {
+        "date": "2024-09-15",
+        "price": 143.42
+      },
+      {
+        "date": "2024-10-15",
+        "price": 142.47
+      },
+      {
+        "date": "2024-11-15",
+        "price": 142.79
+      },
+      {
+        "date": "2024-12-15",
+        "price": 142.41
+      },
+      {
+        "date": "2025-01-15",
+        "price": 144.72
+      },
+      {
+        "date": "2025-02-15",
+        "price": 145.45
+      },
+      {
+        "date": "2025-03-15",
+        "price": 146.28
+      },
+      {
+        "date": "2025-04-15",
+        "price": 145.0
+      },
+      {
+        "date": "2025-05-15",
+        "price": 148.43
+      },
+      {
+        "date": "2025-06-15",
+        "price": 146.17
+      },
+      {
+        "date": "2025-07-15",
+        "price": 148.1
+      },
+      {
+        "date": "2025-08-15",
+        "price": 147.72
+      },
+      {
+        "date": "2025-09-15",
+        "price": 151.98
+      },
+      {
+        "date": "2025-10-15",
+        "price": 150.45
+      },
+      {
+        "date": "2025-11-15",
+        "price": 150.48
+      },
+      {
+        "date": "2025-12-15",
+        "price": 153.65
+      },
+      {
+        "date": "2026-01-15",
+        "price": 153.1
+      },
+      {
+        "date": "2026-02-15",
+        "price": 152.51
+      },
+      {
+        "date": "2026-03-15",
+        "price": 153.23
+      },
+      {
+        "date": "2026-04-15",
+        "price": 157.73
+      },
+      {
+        "date": "2026-05-15",
+        "price": 158.14
+      },
+      {
+        "date": "2026-06-15",
+        "price": 155.2
+      },
+      {
+        "date": "2026-07-15",
+        "price": 158.2
+      }
+    ],
+    "filings": [
+      {
+        "filing_date": "2025-10-15",
+        "form_type": "10-Q",
+        "headline": "Q3: Innovative Medicine growth offsets Stelara LOE."
+      },
+      {
+        "filing_date": "2026-02-14",
+        "form_type": "10-K",
+        "headline": "FY25 annual: talc litigation reserve maintained."
+      },
+      {
+        "filing_date": "2026-04-15",
+        "form_type": "10-Q",
+        "headline": "Q1: MedTech vision recovery."
+      }
+    ]
   },
   {
     "ticker": "PFE",
     "name": "Pfizer",
     "sector": "Pharmaceuticals",
     "description": "Post-COVID revenue normalization; oncology pipeline rebuild.",
-    "price_now": 28.10,
-    "price_1y_ago": 30.20
+    "price_now": 28.1,
+    "price_1y_ago": 30.2,
+    "price_asof": "2026-07-15",
+    "price_history": [
+      {
+        "date": "2024-07-15",
+        "price": 31.75
+      },
+      {
+        "date": "2024-08-15",
+        "price": 31.25
+      },
+      {
+        "date": "2024-09-15",
+        "price": 31.31
+      },
+      {
+        "date": "2024-10-15",
+        "price": 31.05
+      },
+      {
+        "date": "2024-11-15",
+        "price": 31.03
+      },
+      {
+        "date": "2024-12-15",
+        "price": 31.51
+      },
+      {
+        "date": "2025-01-15",
+        "price": 30.98
+      },
+      {
+        "date": "2025-02-15",
+        "price": 31.25
+      },
+      {
+        "date": "2025-03-15",
+        "price": 30.57
+      },
+      {
+        "date": "2025-04-15",
+        "price": 30.62
+      },
+      {
+        "date": "2025-05-15",
+        "price": 30.43
+      },
+      {
+        "date": "2025-06-15",
+        "price": 30.32
+      },
+      {
+        "date": "2025-07-15",
+        "price": 30.2
+      },
+      {
+        "date": "2025-08-15",
+        "price": 30.02
+      },
+      {
+        "date": "2025-09-15",
+        "price": 29.72
+      },
+      {
+        "date": "2025-10-15",
+        "price": 29.68
+      },
+      {
+        "date": "2025-11-15",
+        "price": 29.68
+      },
+      {
+        "date": "2025-12-15",
+        "price": 29.13
+      },
+      {
+        "date": "2026-01-15",
+        "price": 29.1
+      },
+      {
+        "date": "2026-02-15",
+        "price": 29.29
+      },
+      {
+        "date": "2026-03-15",
+        "price": 28.65
+      },
+      {
+        "date": "2026-04-15",
+        "price": 28.69
+      },
+      {
+        "date": "2026-05-15",
+        "price": 28.74
+      },
+      {
+        "date": "2026-06-15",
+        "price": 28.15
+      },
+      {
+        "date": "2026-07-15",
+        "price": 28.1
+      }
+    ],
+    "filings": [
+      {
+        "filing_date": "2025-10-29",
+        "form_type": "10-Q",
+        "headline": "Q3: cost cuts on track; oncology pipeline update."
+      },
+      {
+        "filing_date": "2026-02-27",
+        "form_type": "10-K",
+        "headline": "FY25 annual: Seagen integration complete."
+      },
+      {
+        "filing_date": "2026-04-29",
+        "form_type": "10-Q",
+        "headline": "Q1: guidance reiterated despite COVID drag."
+      }
+    ]
   },
   {
     "ticker": "MRNA",
     "name": "Moderna",
     "sector": "Biotech",
     "description": "mRNA platform extending beyond COVID into flu, RSV, and oncology.",
-    "price_now": 34.20,
-    "price_1y_ago": 86.40
+    "price_now": 34.2,
+    "price_1y_ago": 86.4,
+    "price_asof": "2026-07-15",
+    "price_history": [
+      {
+        "date": "2024-07-15",
+        "price": 149.72
+      },
+      {
+        "date": "2024-08-15",
+        "price": 142.61
+      },
+      {
+        "date": "2024-09-15",
+        "price": 138.19
+      },
+      {
+        "date": "2024-10-15",
+        "price": 133.41
+      },
+      {
+        "date": "2024-11-15",
+        "price": 127.08
+      },
+      {
+        "date": "2024-12-15",
+        "price": 123.37
+      },
+      {
+        "date": "2025-01-15",
+        "price": 118.06
+      },
+      {
+        "date": "2025-02-15",
+        "price": 112.72
+      },
+      {
+        "date": "2025-03-15",
+        "price": 105.8
+      },
+      {
+        "date": "2025-04-15",
+        "price": 100.0
+      },
+      {
+        "date": "2025-05-15",
+        "price": 96.9
+      },
+      {
+        "date": "2025-06-15",
+        "price": 91.04
+      },
+      {
+        "date": "2025-07-15",
+        "price": 86.4
+      },
+      {
+        "date": "2025-08-15",
+        "price": 81.75
+      },
+      {
+        "date": "2025-09-15",
+        "price": 75.94
+      },
+      {
+        "date": "2025-10-15",
+        "price": 71.88
+      },
+      {
+        "date": "2025-11-15",
+        "price": 67.26
+      },
+      {
+        "date": "2025-12-15",
+        "price": 61.78
+      },
+      {
+        "date": "2026-01-15",
+        "price": 58.1
+      },
+      {
+        "date": "2026-02-15",
+        "price": 53.2
+      },
+      {
+        "date": "2026-03-15",
+        "price": 48.28
+      },
+      {
+        "date": "2026-04-15",
+        "price": 44.65
+      },
+      {
+        "date": "2026-05-15",
+        "price": 40.83
+      },
+      {
+        "date": "2026-06-15",
+        "price": 37.77
+      },
+      {
+        "date": "2026-07-15",
+        "price": 34.2
+      }
+    ],
+    "filings": [
+      {
+        "filing_date": "2025-11-07",
+        "form_type": "10-Q",
+        "headline": "Q3: COVID revenue tracks low end; cash burn managed."
+      },
+      {
+        "filing_date": "2026-02-27",
+        "form_type": "10-K",
+        "headline": "FY25 annual: mRESVIA year-one uptake below plan."
+      },
+      {
+        "filing_date": "2026-05-08",
+        "form_type": "10-Q",
+        "headline": "Q1: INT (individualized neoantigen) Phase 3 enrollment ongoing."
+      }
+    ]
   },
   {
     "ticker": "KO",
     "name": "Coca-Cola",
     "sector": "Beverages",
     "description": "Global beverage portfolio; pricing power offsetting volume softness.",
-    "price_now": 72.10,
-    "price_1y_ago": 68.30
+    "price_now": 72.1,
+    "price_1y_ago": 68.3,
+    "price_asof": "2026-07-15",
+    "price_history": [
+      {
+        "date": "2024-07-15",
+        "price": 65.74
+      },
+      {
+        "date": "2024-08-15",
+        "price": 65.76
+      },
+      {
+        "date": "2024-09-15",
+        "price": 66.11
+      },
+      {
+        "date": "2024-10-15",
+        "price": 65.5
+      },
+      {
+        "date": "2024-11-15",
+        "price": 66.75
+      },
+      {
+        "date": "2024-12-15",
+        "price": 66.13
+      },
+      {
+        "date": "2025-01-15",
+        "price": 67.02
+      },
+      {
+        "date": "2025-02-15",
+        "price": 66.71
+      },
+      {
+        "date": "2025-03-15",
+        "price": 67.8
+      },
+      {
+        "date": "2025-04-15",
+        "price": 67.88
+      },
+      {
+        "date": "2025-05-15",
+        "price": 68.08
+      },
+      {
+        "date": "2025-06-15",
+        "price": 67.88
+      },
+      {
+        "date": "2025-07-15",
+        "price": 68.3
+      },
+      {
+        "date": "2025-08-15",
+        "price": 67.69
+      },
+      {
+        "date": "2025-09-15",
+        "price": 69.05
+      },
+      {
+        "date": "2025-10-15",
+        "price": 69.37
+      },
+      {
+        "date": "2025-11-15",
+        "price": 68.85
+      },
+      {
+        "date": "2025-12-15",
+        "price": 69.62
+      },
+      {
+        "date": "2026-01-15",
+        "price": 70.2
+      },
+      {
+        "date": "2026-02-15",
+        "price": 70.34
+      },
+      {
+        "date": "2026-03-15",
+        "price": 70.7
+      },
+      {
+        "date": "2026-04-15",
+        "price": 71.67
+      },
+      {
+        "date": "2026-05-15",
+        "price": 71.1
+      },
+      {
+        "date": "2026-06-15",
+        "price": 70.79
+      },
+      {
+        "date": "2026-07-15",
+        "price": 72.1
+      }
+    ],
+    "filings": [
+      {
+        "filing_date": "2025-10-22",
+        "form_type": "10-Q",
+        "headline": "Q3: organic revenue +9%; price/mix +11%."
+      },
+      {
+        "filing_date": "2026-02-21",
+        "form_type": "10-K",
+        "headline": "FY25 annual: developed-market volume flat."
+      },
+      {
+        "filing_date": "2026-04-29",
+        "form_type": "10-Q",
+        "headline": "Q1: FX headwind trimmed guide."
+      }
+    ]
   },
   {
     "ticker": "PEP",
     "name": "PepsiCo",
     "sector": "Beverages",
     "description": "Beverages plus Frito-Lay snacks; pricing-led growth.",
-    "price_now": 168.20,
-    "price_1y_ago": 172.40
+    "price_now": 168.2,
+    "price_1y_ago": 172.4,
+    "price_asof": "2026-07-15",
+    "price_history": [
+      {
+        "date": "2024-07-15",
+        "price": 175.39
+      },
+      {
+        "date": "2024-08-15",
+        "price": 177.04
+      },
+      {
+        "date": "2024-09-15",
+        "price": 175.16
+      },
+      {
+        "date": "2024-10-15",
+        "price": 173.25
+      },
+      {
+        "date": "2024-11-15",
+        "price": 173.82
+      },
+      {
+        "date": "2024-12-15",
+        "price": 171.73
+      },
+      {
+        "date": "2025-01-15",
+        "price": 173.89
+      },
+      {
+        "date": "2025-02-15",
+        "price": 172.96
+      },
+      {
+        "date": "2025-03-15",
+        "price": 174.13
+      },
+      {
+        "date": "2025-04-15",
+        "price": 172.25
+      },
+      {
+        "date": "2025-05-15",
+        "price": 171.51
+      },
+      {
+        "date": "2025-06-15",
+        "price": 174.78
+      },
+      {
+        "date": "2025-07-15",
+        "price": 172.4
+      },
+      {
+        "date": "2025-08-15",
+        "price": 171.35
+      },
+      {
+        "date": "2025-09-15",
+        "price": 170.65
+      },
+      {
+        "date": "2025-10-15",
+        "price": 168.91
+      },
+      {
+        "date": "2025-11-15",
+        "price": 173.53
+      },
+      {
+        "date": "2025-12-15",
+        "price": 172.79
+      },
+      {
+        "date": "2026-01-15",
+        "price": 170.3
+      },
+      {
+        "date": "2026-02-15",
+        "price": 170.94
+      },
+      {
+        "date": "2026-03-15",
+        "price": 168.92
+      },
+      {
+        "date": "2026-04-15",
+        "price": 168.26
+      },
+      {
+        "date": "2026-05-15",
+        "price": 169.61
+      },
+      {
+        "date": "2026-06-15",
+        "price": 169.06
+      },
+      {
+        "date": "2026-07-15",
+        "price": 168.2
+      }
+    ],
+    "filings": [
+      {
+        "filing_date": "2025-10-08",
+        "form_type": "10-Q",
+        "headline": "Q3: Frito-Lay volume declines widen."
+      },
+      {
+        "filing_date": "2026-02-06",
+        "form_type": "10-K",
+        "headline": "FY25 annual: productivity plan expanded."
+      },
+      {
+        "filing_date": "2026-04-22",
+        "form_type": "10-Q",
+        "headline": "Q1: guidance lowered on softer volumes."
+      }
+    ]
   },
   {
     "ticker": "MCD",
     "name": "McDonald's",
     "sector": "Restaurants",
     "description": "Global QSR franchise model; value-menu pivot in response to traffic softness.",
-    "price_now": 295.10,
-    "price_1y_ago": 278.20
+    "price_now": 295.1,
+    "price_1y_ago": 278.2,
+    "price_asof": "2026-07-15",
+    "price_history": [
+      {
+        "date": "2024-07-15",
+        "price": 266.85
+      },
+      {
+        "date": "2024-08-15",
+        "price": 269.44
+      },
+      {
+        "date": "2024-09-15",
+        "price": 267.77
+      },
+      {
+        "date": "2024-10-15",
+        "price": 267.52
+      },
+      {
+        "date": "2024-11-15",
+        "price": 266.78
+      },
+      {
+        "date": "2024-12-15",
+        "price": 272.39
+      },
+      {
+        "date": "2025-01-15",
+        "price": 272.52
+      },
+      {
+        "date": "2025-02-15",
+        "price": 272.67
+      },
+      {
+        "date": "2025-03-15",
+        "price": 277.1
+      },
+      {
+        "date": "2025-04-15",
+        "price": 273.22
+      },
+      {
+        "date": "2025-05-15",
+        "price": 272.84
+      },
+      {
+        "date": "2025-06-15",
+        "price": 279.06
+      },
+      {
+        "date": "2025-07-15",
+        "price": 278.2
+      },
+      {
+        "date": "2025-08-15",
+        "price": 282.87
+      },
+      {
+        "date": "2025-09-15",
+        "price": 283.69
+      },
+      {
+        "date": "2025-10-15",
+        "price": 283.23
+      },
+      {
+        "date": "2025-11-15",
+        "price": 281.07
+      },
+      {
+        "date": "2025-12-15",
+        "price": 289.31
+      },
+      {
+        "date": "2026-01-15",
+        "price": 286.6
+      },
+      {
+        "date": "2026-02-15",
+        "price": 289.65
+      },
+      {
+        "date": "2026-03-15",
+        "price": 292.02
+      },
+      {
+        "date": "2026-04-15",
+        "price": 288.76
+      },
+      {
+        "date": "2026-05-15",
+        "price": 290.72
+      },
+      {
+        "date": "2026-06-15",
+        "price": 297.36
+      },
+      {
+        "date": "2026-07-15",
+        "price": 295.1
+      }
+    ],
+    "filings": [
+      {
+        "filing_date": "2025-10-29",
+        "form_type": "10-Q",
+        "headline": "Q3: US comps -0.5%; value-menu rollout underway."
+      },
+      {
+        "filing_date": "2026-02-24",
+        "form_type": "10-K",
+        "headline": "FY25 annual: unit growth guided +4%."
+      },
+      {
+        "filing_date": "2026-04-29",
+        "form_type": "10-Q",
+        "headline": "Q1: traffic inflects positive in US."
+      }
+    ]
   }
 ]
